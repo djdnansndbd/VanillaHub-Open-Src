@@ -1062,6 +1062,14 @@ local function trySelect(target)
     end
 end
 
+local function getGroupKey(model)
+    local iv = model:FindFirstChild("ItemName")
+    local name = iv and iv.Value or model.Name
+    local tc = model:FindFirstChild("TreeClass")
+    local treeClass = tc and tc.Value or ""
+    return name .. "|" .. treeClass
+end
+
 local function tryGroupSelect(target)
     if not target then return end
     local model = target.Parent
@@ -1070,14 +1078,11 @@ local function tryGroupSelect(target)
     end
     if not (model and model:FindFirstChild("Owner")) then return end
     if not isOwnedByMe(model) then return end
-    local iv = model:FindFirstChild("ItemName")
-    local groupName = iv and iv.Value or model.Name
+    local groupKey = getGroupKey(model)
     if not workspace:FindFirstChild("PlayerModels") then return end
     for _, v in pairs(workspace.PlayerModels:GetChildren()) do
         if v:FindFirstChild("Owner") and isOwnedByMe(v) then
-            local viv = v:FindFirstChild("ItemName")
-            local vName = viv and viv.Value or v.Name
-            if vName == groupName then
+            if getGroupKey(v) == groupKey then
                 if v:FindFirstChild("Main") then selectPart(v.Main) end
                 if v:FindFirstChild("WoodSection") then selectPart(v.WoodSection) end
             end
@@ -1161,7 +1166,7 @@ iSep()
 
 -- ── Teleport ─────────────────────────────────────────
 iSectionLabel("Teleport")
-iSlider("Delay", 0.5, 20, 0.5, function(v) tpItemSpeed = v / 10 end)
+iSlider("Delay", 0.1, 20, 0.5, function(v) tpItemSpeed = v / 10 end)
 
 -- Sort mode row
 local itemModeRow = Instance.new("Frame", itemPage)
