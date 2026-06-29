@@ -1377,7 +1377,11 @@ tpSelectBtn.MouseButton1Click:Connect(function()
                     task.wait(0.05); timeout = timeout + 0.05
                 end
                 if dragger then dragger:FireServer(part.Parent) end
-                part:PivotTo(CFrame.new(destCF.Position))
+                local yaw = math.atan2(facingDir.X, facingDir.Z)
+                local itemDestCF = tpAxisMode == "horizontal"
+                    and CFrame.new(destCF.Position) * CFrame.Angles(0, yaw, 0) * CFrame.Angles(math.rad(90), 0, 0)
+                    or  CFrame.new(destCF.Position)
+                part:PivotTo(itemDestCF)
             end)
             deselectPart(part)
             task.wait(tpItemSpeed)
