@@ -1377,7 +1377,7 @@ tpSelectBtn.MouseButton1Click:Connect(function()
                     task.wait(0.05); timeout = timeout + 0.05
                 end
                 if dragger then dragger:FireServer(part.Parent) end
-                part:PivotTo(destCF)
+                part:PivotTo(CFrame.new(destCF.Position))
             end)
             deselectPart(part)
             task.wait(tpItemSpeed)
