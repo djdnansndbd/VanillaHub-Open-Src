@@ -6,13 +6,13 @@ end
 
 -- List of scripts to load from this repo
 local scripts = {
-    "https://raw.githubusercontent.com/VanilllaHub/VanillaHub.Lt2/main/Vanilla1.lua",
-    "https://raw.githubusercontent.com/VanilllaHub/VanillaHub.Lt2/main/Vanilla2.lua",
-    "https://raw.githubusercontent.com/VanilllaHub/VanillaHub.Lt2/main/Vanilla3.lua",
-    "https://raw.githubusercontent.com/VanilllaHub/VanillaHub.Lt2/main/Vanilla4.lua",
-    "https://raw.githubusercontent.com/VanilllaHub/VanillaHub.Lt2/main/Vanilla5.lua",
-    "https://raw.githubusercontent.com/VanilllaHub/VanillaHub.Lt2/main/Vanilla6.lua",
-    "https://raw.githubusercontent.com/VanilllaHub/VanillaHub.Lt2/main/Vanilla7.lua"
+    "https://raw.githubusercontent.com/VanillaHub-Open-Src/blob/main/Vanilla1.lua",
+    "https://raw.githubusercontent.com/VanillaHub-Open-Src/blob/main/Vanilla2.lua",
+    "https://raw.githubusercontent.com/VanillaHub-Open-Src/blob/main/Vanilla3.lua",
+    "https://raw.githubusercontent.com/VanillaHub-Open-Src/blob/main/Vanilla4.lua",
+    "https://raw.githubusercontent.com/VanillaHub-Open-Src/blob/main/Vanilla5.lua",
+    "https://raw.githubusercontent.com/VanillaHub-Open-Src/blob/main/Vanilla6.lua",
+    "https://raw.githubusercontent.com/VanillaHub-Open-Src/blob/main/Vanilla7.lua"
 }
 
 print("VanilllaHub: Loading LT2 Modules...")
