@@ -1063,9 +1063,9 @@ local function trySelect(target)
 end
 
 local function getGroupKey(model)
-    local iv = model:FindFirstChild("ItemName")
+    local iv = model:FindFirstChild("ItemName", true)
     local name = iv and iv.Value or model.Name
-    local tc = model:FindFirstChild("TreeClass")
+    local tc = model:FindFirstChild("TreeClass", true)
     local treeClass = tc and tc.Value or ""
     return name .. "|" .. treeClass
 end
