@@ -1024,10 +1024,18 @@ local function deselectAll()
 end
 table.insert(cleanupTasks, deselectAll)
 
+local function isOwnedByMe(model)
+    local owner = model:FindFirstChild("Owner")
+    if not owner then return false end
+    local os = owner:FindFirstChild("OwnerString")
+    return os and os.Value == player.Name
+end
+
 local function trySelect(target)
     if not target then return end
     local par = target.Parent; if not par then return end
     if not par:FindFirstChild("Owner") then return end
+    if not isOwnedByMe(par) then return end
     if par:FindFirstChild("Main") then
         local tPart = par.Main
         if target == tPart or target:IsDescendantOf(tPart) then
@@ -1043,7 +1051,7 @@ local function trySelect(target)
         end
     end
     local model = target:FindFirstAncestorOfClass("Model")
-    if model and model:FindFirstChild("Owner") then
+    if model and model:FindFirstChild("Owner") and isOwnedByMe(model) then
         if model:FindFirstChild("Main") then
             local p = model.Main
             if p:FindFirstChild("Selection") then deselectPart(p) else selectPart(p) end
@@ -1061,11 +1069,12 @@ local function tryGroupSelect(target)
         model = target:FindFirstAncestorOfClass("Model")
     end
     if not (model and model:FindFirstChild("Owner")) then return end
+    if not isOwnedByMe(model) then return end
     local iv = model:FindFirstChild("ItemName")
     local groupName = iv and iv.Value or model.Name
     if not workspace:FindFirstChild("PlayerModels") then return end
     for _, v in pairs(workspace.PlayerModels:GetChildren()) do
-        if v:FindFirstChild("Owner") then
+        if v:FindFirstChild("Owner") and isOwnedByMe(v) then
             local viv = v:FindFirstChild("ItemName")
             local vName = viv and viv.Value or v.Name
             if vName == groupName then
@@ -1107,6 +1116,7 @@ UserInputService.InputBegan:Connect(function(input)
         RunService.RenderStepped:Wait()
         lassoFrame.Size = UDim2.new(0, mouse.X, 0, mouse.Y) - lassoFrame.Position
         for _, v in pairs(workspace.PlayerModels:GetChildren()) do
+            if not isOwnedByMe(v) then continue end
             if v:FindFirstChild("Main") then
                 local sp, vis = Camera:WorldToScreenPoint(v.Main.CFrame.p)
                 if vis and is_in_frame(sp, lassoFrame) then selectPart(v.Main) end
@@ -1326,6 +1336,7 @@ tpSelectBtn.MouseButton1Click:Connect(function()
                 if dragger then dragger:FireServer(part.Parent) end
                 part:PivotTo(destCF)
             end)
+            deselectPart(part)
             task.wait(tpItemSpeed)
         end
         if OldPos and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
