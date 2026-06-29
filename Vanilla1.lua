@@ -878,6 +878,7 @@ local groupSelectEnabled  = false
 local isTeleportingItems  = false
 local stopTeleportItems   = false
 local useCustomDest       = false
+local returnToPos         = true
 local tpCircle            = nil
 
 local function iSectionLabel(text)
@@ -1063,11 +1064,8 @@ local function trySelect(target)
 end
 
 local function getGroupKey(model)
-    local iv = model:FindFirstChild("ItemName", true)
-    local name = iv and iv.Value or model.Name
-    local tc = model:FindFirstChild("TreeClass", true)
-    local treeClass = tc and tc.Value or ""
-    return name .. "|" .. treeClass
+    local tc = model:FindFirstChild("TreeClass")
+    return model.Name .. "|" .. (tc and tc.Value or "")
 end
 
 local function tryGroupSelect(target)
@@ -1165,8 +1163,7 @@ iButton("Deselect All", function() deselectAll() end)
 iSep()
 
 -- ── Teleport ─────────────────────────────────────────
-iSectionLabel("Teleport")
-iSlider("Delay", 0.1, 20, 0.5, function(v) tpItemSpeed = v / 10 end)
+
 
 -- Sort mode row
 local itemModeRow = Instance.new("Frame", itemPage)
@@ -1290,6 +1287,8 @@ iToggle("Custom Destination", false, function(val)
     end
 end)
 
+iToggle("Return to Position", true, function(val) returnToPos = val end)
+
 iSep()
 
 -- ── Actions ───────────────────────────────────────────
@@ -1391,7 +1390,7 @@ tpSelectBtn.MouseButton1Click:Connect(function()
             deselectPart(part)
             task.wait(tpItemSpeed)
         end
-        if OldPos and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        if returnToPos and OldPos and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
             player.Character.HumanoidRootPart.CFrame = OldPos
         end
         isTeleportingItems = false; stopTeleportItems = false
