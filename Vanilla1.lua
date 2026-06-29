@@ -1161,7 +1161,7 @@ iSep()
 
 -- ── Teleport ─────────────────────────────────────────
 iSectionLabel("Teleport")
-iSlider("Delay", 1, 20, 3, function(v) tpItemSpeed = v / 10 end)
+iSlider("Delay", 0.5, 20, 0.5, function(v) tpItemSpeed = v / 10 end)
 
 -- Sort mode row
 local itemModeRow = Instance.new("Frame", itemPage)
@@ -1195,6 +1195,39 @@ for i, mName in ipairs(itemModeNames) do
     end)
 end
 updateItemModeButtons("Group")
+
+-- Axis mode row (Vertical / Horizontal)
+local tpAxisRow = Instance.new("Frame", itemPage)
+tpAxisRow.Size = UDim2.new(1, 0, 0, 30); tpAxisRow.BackgroundTransparency = 1
+
+local tpAxisButtons = {}
+local tpAxisNames = {"Vertical", "Horizontal"}
+local tpAxisMode = "vertical"
+
+local function updateTpAxisButtons(active)
+    for _, ab in ipairs(tpAxisButtons) do
+        local isActive = ab.Text == active
+        TweenService:Create(ab, TweenInfo.new(0.18), {
+            BackgroundColor3 = isActive and Color3.fromRGB(110,110,110) or BTN_COLOR,
+            TextColor3 = isActive and Color3.fromRGB(255,255,255) or THEME_TEXT
+        }):Play()
+    end
+end
+
+for i, aName in ipairs(tpAxisNames) do
+    local ab = Instance.new("TextButton", tpAxisRow)
+    ab.Size = UDim2.new(0.5, -4, 1, 0)
+    ab.Position = UDim2.new((i-1) * 0.5, i == 1 and 0 or 4, 0, 0)
+    ab.BackgroundColor3 = BTN_COLOR; ab.Font = Enum.Font.GothamSemibold; ab.TextSize = 12
+    ab.TextColor3 = THEME_TEXT; ab.Text = aName; ab.BorderSizePixel = 0
+    Instance.new("UICorner", ab).CornerRadius = UDim.new(0, 7)
+    table.insert(tpAxisButtons, ab)
+    ab.MouseButton1Click:Connect(function()
+        tpAxisMode = string.lower(aName)
+        updateTpAxisButtons(aName)
+    end)
+end
+updateTpAxisButtons("Vertical")
 
 -- Custom destination row (hidden until toggle is ON)
 local tpDestRow = Instance.new("Frame", itemPage)
@@ -1274,6 +1307,12 @@ tpSelectBtn.MouseButton1Click:Connect(function()
             and player.Character:FindFirstChild("HumanoidRootPart")
             and player.Character.HumanoidRootPart.CFrame)
 
+    -- Capture facing direction once for horizontal mode
+    local facingDir = (player.Character
+        and player.Character:FindFirstChild("HumanoidRootPart")
+        and player.Character.HumanoidRootPart.CFrame.LookVector)
+        or Vector3.new(1, 0, 0)
+
     local OldPos = player.Character
         and player.Character:FindFirstChild("HumanoidRootPart")
         and player.Character.HumanoidRootPart.CFrame
@@ -1321,7 +1360,11 @@ tpSelectBtn.MouseButton1Click:Connect(function()
             if stopTeleportItems then break end
             local char = player.Character; local hrp = char and char:FindFirstChild("HumanoidRootPart")
             if not hrp then task.wait(tpItemSpeed); continue end
-            hrp.CFrame = CFrame.new(part.CFrame.p) * CFrame.new(5, 0, 0)
+            -- Approach the item from the side the player faces (horiz) or from above (vert)
+            local approachOffset = tpAxisMode == "horizontal"
+                and (facingDir * 5)
+                or Vector3.new(0, 5, 0)
+            hrp.CFrame = CFrame.new(part.CFrame.p + approachOffset)
             task.wait(tpItemSpeed)
             if stopTeleportItems then break end
             pcall(function()
