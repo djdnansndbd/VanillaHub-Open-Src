@@ -945,7 +945,6 @@ local function iToggle(text, default, cb)
     end)
     return frame
 end
-
 local function iDropdown(labelText, defaultText, refreshFunc, selectCb)
     local selected = defaultText
     local isOpen   = false
@@ -975,63 +974,61 @@ local function iDropdown(labelText, defaultText, refreshFunc, selectCb)
     lbl.Text               = labelText
     lbl.Font               = Enum.Font.GothamBold
     lbl.TextSize           = 11
-    lbl.TextColor3         = SECTION_TEXT
+    lbl.TextColor3         = Color3.fromRGB(130, 130, 130)
     lbl.TextXAlignment     = Enum.TextXAlignment.Left
 
     local selFrame = Instance.new("Frame", header)
-    selFrame.Size             = UDim2.new(1, -120, 0, 26)
-    selFrame.Position         = UDim2.new(0, 112, 0.5, -13)
-    selFrame.BackgroundColor3 = Color3.fromRGB(32, 32, 32)
+    selFrame.Size             = UDim2.new(1, -126, 0, 26)
+    selFrame.Position         = UDim2.new(0, 118, 0.5, -13)
+    selFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     selFrame.BorderSizePixel  = 0
     Instance.new("UICorner", selFrame).CornerRadius = UDim.new(0, 5)
     local selStroke = Instance.new("UIStroke", selFrame)
-    selStroke.Color        = Color3.fromRGB(55, 55, 55)
+    selStroke.Color        = Color3.fromRGB(70, 70, 70)
     selStroke.Thickness    = 1
     selStroke.Transparency = 0.3
 
     local avatar = Instance.new("ImageLabel", selFrame)
     avatar.Size             = UDim2.new(0, 18, 0, 18)
     avatar.Position         = UDim2.new(0, 5, 0.5, -9)
-    avatar.BackgroundColor3 = Color3.fromRGB(32, 32, 32)
+    avatar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     avatar.BorderSizePixel  = 0
     avatar.Image            = ""
     avatar.ScaleType        = Enum.ScaleType.Crop
     Instance.new("UICorner", avatar).CornerRadius = UDim.new(1, 0)
 
     local selLbl = Instance.new("TextLabel", selFrame)
-    selLbl.Size               = UDim2.new(1, -50, 1, 0)
+    selLbl.Size               = UDim2.new(1, -44, 1, 0)
     selLbl.Position           = UDim2.new(0, 28, 0, 0)
     selLbl.BackgroundTransparency = 1
-    selLbl.Text               = defaultText
+    selLbl.Text               = selected
     selLbl.Font               = Enum.Font.GothamSemibold
     selLbl.TextSize           = 11
-    selLbl.TextColor3         = Color3.fromRGB(155, 155, 155)
+    selLbl.TextColor3         = THEME_TEXT
     selLbl.TextXAlignment     = Enum.TextXAlignment.Left
-    selLbl.TextTruncate       = Enum.TextTruncate.AtEnd
 
     local arrowLbl = Instance.new("TextLabel", selFrame)
-    arrowLbl.Size               = UDim2.new(0, 20, 1, 0)
-    arrowLbl.Position           = UDim2.new(1, -22, 0, 0)
+    arrowLbl.Size               = UDim2.new(0, 16, 1, 0)
+    arrowLbl.Position           = UDim2.new(1, -20, 0, 0)
     arrowLbl.BackgroundTransparency = 1
-    arrowLbl.Text               = "▾"
+    arrowLbl.Text               = "▼"
     arrowLbl.Font               = Enum.Font.GothamBold
-    arrowLbl.TextSize           = 13
-    arrowLbl.TextColor3         = Color3.fromRGB(100, 100, 100)
-    arrowLbl.TextXAlignment     = Enum.TextXAlignment.Center
+    arrowLbl.TextSize           = 10
+    arrowLbl.TextColor3         = Color3.fromRGB(155, 155, 155)
 
-    local headerBtn = Instance.new("TextButton", selFrame)
-    headerBtn.Size               = UDim2.new(1, 0, 1, 0)
-    headerBtn.BackgroundTransparency = 1
-    headerBtn.Text               = ""
-    headerBtn.AutoButtonColor    = false
-    headerBtn.ZIndex             = 5
+    local dropdownBtn = Instance.new("TextButton", selFrame)
+    dropdownBtn.Size               = UDim2.new(1, 0, 1, 0)
+    dropdownBtn.BackgroundTransparency = 1
+    dropdownBtn.Text               = ""
+    dropdownBtn.AutoButtonColor    = false
+    dropdownBtn.ZIndex             = 5
 
     local divider = Instance.new("Frame", outer)
-    divider.Size             = UDim2.new(1, -14, 0, 1)
-    divider.Position         = UDim2.new(0, 7, 0, HEADER_H)
-    divider.BackgroundColor3 = Color3.fromRGB(55, 55, 55)
-    divider.BorderSizePixel  = 0
-    divider.Visible          = false
+    divider.Size                   = UDim2.new(1, -24, 0, 1)
+    divider.Position               = UDim2.new(0, 12, 0, HEADER_H)
+    divider.BackgroundColor3       = Color3.fromRGB(45, 45, 45)
+    divider.BorderSizePixel        = 0
+    divider.Visible                = false
 
     local listScroll = Instance.new("ScrollingFrame", outer)
     listScroll.Position               = UDim2.new(0, 0, 0, HEADER_H + 2)
@@ -1055,6 +1052,13 @@ local function iDropdown(labelText, defaultText, refreshFunc, selectCb)
     listPad.PaddingLeft   = UDim.new(0, 5)
     listPad.PaddingRight  = UDim.new(0, 5)
 
+    local function clearSelected()
+        selected          = defaultText
+        selLbl.Text       = defaultText
+        selLbl.TextColor3 = Color3.fromRGB(130, 130, 130)
+        avatar.Image      = ""
+    end
+
     local function setSelected(name, userId)
         selected            = name
         selLbl.Text         = name
@@ -1071,15 +1075,6 @@ local function iDropdown(labelText, defaultText, refreshFunc, selectCb)
         else
             avatar.Image = ""
         end
-    end
-
-    local function clearSelected()
-        selected            = defaultText
-        selLbl.Text         = defaultText
-        selLbl.TextColor3   = Color3.fromRGB(155, 155, 155)
-        avatar.Image        = ""
-        arrowLbl.TextColor3 = Color3.fromRGB(100, 100, 100)
-        outerStroke.Color   = Color3.fromRGB(55, 55, 55)
     end
 
     local function closeList()
@@ -1215,14 +1210,14 @@ local function iDropdown(labelText, defaultText, refreshFunc, selectCb)
         TweenService:Create(listScroll, TweenInfo.new(0.22, Enum.EasingStyle.Quint), {Size = UDim2.new(1,0,0,listH)}):Play()
     end
 
-    headerBtn.MouseButton1Click:Connect(function()
+    dropdownBtn.MouseButton1Click:Connect(function()
         if isOpen then closeList() else openList() end
     end)
-    headerBtn.MouseEnter:Connect(function()
+    dropdownBtn.MouseEnter:Connect(function()
         TweenService:Create(selFrame, TweenInfo.new(0.10), {BackgroundColor3 = Color3.fromRGB(42,42,42)}):Play()
     end)
-    headerBtn.MouseLeave:Connect(function()
-        TweenService:Create(selFrame, TweenInfo.new(0.10), {BackgroundColor3 = Color3.fromRGB(32, 32, 32)}):Play()
+    dropdownBtn.MouseLeave:Connect(function()
+        TweenService:Create(selFrame, TweenInfo.new(0.10), {BackgroundColor3 = Color3.fromRGB(30, 30, 30)}):Play()
     end)
     
     Players.PlayerRemoving:Connect(function(leaving)
@@ -1250,6 +1245,7 @@ local function iDropdown(labelText, defaultText, refreshFunc, selectCb)
 
     return outer
 end
+
 
 local function iSlider(text, minV, maxV, defV, cb)
     local frame = Instance.new("Frame", itemPage)
@@ -1457,7 +1453,7 @@ end
 -- ── Selection ────────────────────────────────────────
 iSectionLabel("Selection")
 
-iDropdown("Select From Player", "None", function()
+iDropdown("Select Player", "None", function()
     local list = {}
     for _, p in ipairs(Players:GetPlayers()) do
         if p ~= player then table.insert(list, p) end
@@ -1467,6 +1463,8 @@ iDropdown("Select From Player", "None", function()
 end, function(val)
     if val == "None" then selectedOtherPlayer = nil else selectedOtherPlayer = val end
 end)
+
+warn("[VanillaHub] Item Tab 'Select From Player' dropdown rendered successfully")
 
 iToggle("Click Select", false, function(val)
     clickSelectEnabled = val
@@ -1790,7 +1788,7 @@ end)
 
 -- ════════════════════════════════════════════════════
 -- DUPE TAB
--- ════════════════════════════════════════════════════
+-- ----------------------------------------------------
 local dupePage = pages["DupeTab"]
 local dupeList = dupePage:FindFirstChildOfClass("UIListLayout")
 if dupeList then dupeList.Padding = UDim.new(0, 8) end
@@ -1821,7 +1819,7 @@ end
 
 dSectionLabel("Info")
 
--- ════════════════════════════════════════════════════
+----
 -- SEARCH TAB
 -- ════════════════════════════════════════════════════
 local searchTabPage = pages["SearchTab"]
