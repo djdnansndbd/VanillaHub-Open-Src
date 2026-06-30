@@ -1680,24 +1680,44 @@ tpSelectBtn.MouseButton1Click:Connect(function()
                 return getItemType(a) < getItemType(b)
             end)
         end
+        local startTime = tick()
         for i, part in ipairs(selectedParts) do
             if stopTeleportItems then break end
             if tpSelectBtn and tpSelectBtn.Parent then
-                tpSelectBtn.Text = string.format("Stop  [ %d / %d ]", (#selectedParts - i + 1), #selectedParts)
+                local remaining = #selectedParts - i + 1
+                local txt = string.format("Stop  [ %d / %d ]", remaining, #selectedParts)
+                if i > 1 then
+                    local avg = (tick() - startTime) / (i - 1)
+                    local tLeft = math.ceil(avg * remaining)
+                    local m = math.floor(tLeft / 60)
+                    local s = tLeft % 60
+                    txt = txt .. (m > 0 and string.format(" - %dm %ds left", m, s) or string.format(" - %ds left", s))
+                end
+                tpSelectBtn.Text = txt
             end
             local char = player.Character; local hrp = char and char:FindFirstChild("HumanoidRootPart")
             if not hrp then task.wait(tpItemSpeed); continue end
             -- Approach the item from the side the player faces (horiz) or from above (vert)
-            local approachOffset = tpAxisMode == "horizontal"
-                and (facingDir * 5)
-                or Vector3.new(0, 5, 0)
+            local approachOffset = tpAxisMode == "horizontal" and (facingDir * 5) or Vector3.new(0, 5, 0)
             local yaw = math.atan2(facingDir.X, facingDir.Z)
-            local itemDestCF = tpAxisMode == "horizontal"
-                and CFrame.new(destCF.Position) * CFrame.Angles(0, yaw, 0) * CFrame.Angles(math.rad(90), 0, 0)
-                or  CFrame.new(destCF.Position)
+            
+            local itemDestCF
+            if tpAxisMode == "horizontal" then
+                -- Lay flat and stack vertically
+                local heightOffset = 1 + (i * 1.5)
+                itemDestCF = CFrame.new(destCF.Position + Vector3.new(0, heightOffset, 0)) * CFrame.Angles(0, yaw, 0) * CFrame.Angles(math.rad(90), 0, 0)
+            else
+                -- Stand upright and arrange in a side-by-side grid
+                local gridX = (i % 6) * 1.5
+                local gridZ = math.floor(i / 6) * 1.5
+                local sizeY = part.Size and (part.Size.Y / 2) or 2
+                itemDestCF = CFrame.new(destCF.Position + Vector3.new(gridX, sizeY + 0.5, gridZ))
+            end
             for attempt = 1, 5 do
-                hrp.CFrame = CFrame.new(part.CFrame.p + approachOffset)
-                task.wait(tpItemSpeed)
+                if (hrp.Position - part.Position).Magnitude > 25 then
+                    hrp.CFrame = CFrame.new(part.CFrame.p + approachOffset)
+                    task.wait(tpItemSpeed)
+                end
                 if stopTeleportItems then break end
                 
                 pcall(function()
@@ -1711,10 +1731,12 @@ tpSelectBtn.MouseButton1Click:Connect(function()
                     end
                     if dragger then dragger:FireServer(part.Parent) end
                     part:PivotTo(itemDestCF)
+                    part.Velocity = Vector3.new(0,0,0)
+                    part.RotVelocity = Vector3.new(0,0,0)
                 end)
                 task.wait(tpItemSpeed)
 
-                if part and part.Parent and (part.Position - itemDestCF.Position).Magnitude < 10 then
+                if part and part.Parent and (part.Position - itemDestCF.Position).Magnitude < 35 then
                     break
                 end
             end
