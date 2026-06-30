@@ -1377,8 +1377,23 @@ tpSelectBtn.MouseButton1Click:Connect(function()
                 or  CFrame.new(destCF.Position)
             for attempt = 1, 5 do
                 hrp.CFrame = CFrame.new(part.CFrame.p + approachOffset)
+                
+                local oldCollisions = {}
+                if part.Parent then
+                    for _, p in ipairs(part.Parent:GetDescendants()) do
+                        if p:IsA("BasePart") then
+                            oldCollisions[p] = p.CanCollide
+                            p.CanCollide = false
+                        end
+                    end
+                end
+                
                 task.wait(tpItemSpeed)
-                if stopTeleportItems then break end
+                if stopTeleportItems then
+                    for p, coll in pairs(oldCollisions) do if p and p.Parent then p.CanCollide = coll end end
+                    break
+                end
+                
                 pcall(function()
                     if not part.Parent.PrimaryPart then part.Parent.PrimaryPart = part end
                     local dragger = ReplicatedStorage:FindFirstChild("Interaction")
@@ -1392,6 +1407,11 @@ tpSelectBtn.MouseButton1Click:Connect(function()
                     part:PivotTo(itemDestCF)
                 end)
                 task.wait(tpItemSpeed)
+                
+                for p, coll in pairs(oldCollisions) do
+                    if p and p.Parent then p.CanCollide = coll end
+                end
+
                 if part and part.Parent and (part.Position - itemDestCF.Position).Magnitude < 10 then
                     break
                 end
@@ -1431,6 +1451,17 @@ iButton("Sell Selected", function()
             
             for attempt = 1, 5 do
                 hrp.CFrame = CFrame.new(part.CFrame.p) * CFrame.new(0, 2, 0)
+                
+                local oldCollisions = {}
+                if part.Parent then
+                    for _, p in ipairs(part.Parent:GetDescendants()) do
+                        if p:IsA("BasePart") then
+                            oldCollisions[p] = p.CanCollide
+                            p.CanCollide = false
+                        end
+                    end
+                end
+
                 task.wait(tpItemSpeed)
                 
                 local sellCF = CFrame.new(314.776, -1.593, 87.807)
@@ -1451,6 +1482,10 @@ iButton("Sell Selected", function()
                 end)
                 task.wait(tpItemSpeed)
                 
+                for p, coll in pairs(oldCollisions) do
+                    if p and p.Parent then p.CanCollide = coll end
+                end
+
                 if part and part.Parent and (part.Position - sellCF.Position).Magnitude < 15 then
                     break
                 end
