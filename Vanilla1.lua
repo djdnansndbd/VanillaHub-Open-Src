@@ -1372,7 +1372,7 @@ tpSelectBtn.MouseButton1Click:Connect(function()
                 and (facingDir * 5)
                 or Vector3.new(0, 5, 0)
             local yaw = math.atan2(facingDir.X, facingDir.Z)
-            local stackOffset = Vector3.new(0, i * 1.5, 0)
+            local stackOffset = Vector3.new(0, i * 0.5, 0)
             local itemDestCF = tpAxisMode == "horizontal"
                 and CFrame.new(destCF.Position + stackOffset) * CFrame.Angles(0, yaw, 0) * CFrame.Angles(math.rad(90), 0, 0)
                 or  CFrame.new(destCF.Position + stackOffset)
