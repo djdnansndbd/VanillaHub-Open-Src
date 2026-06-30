@@ -863,7 +863,7 @@ end)
 -- ════════════════════════════════════════════════════
 -- SHARED ITEM/DUPE STATE
 -- ════════════════════════════════════════════════════
-local tpItemSpeed = 0.25
+local tpItemSpeed = 0.2
 
 -- ════════════════════════════════════════════════════
 -- ITEM TAB
@@ -1377,22 +1377,8 @@ tpSelectBtn.MouseButton1Click:Connect(function()
                 or  CFrame.new(destCF.Position)
             for attempt = 1, 5 do
                 hrp.CFrame = CFrame.new(part.CFrame.p + approachOffset)
-                
-                local oldCollisions = {}
-                if part.Parent then
-                    for _, p in ipairs(part.Parent:GetDescendants()) do
-                        if p:IsA("BasePart") then
-                            oldCollisions[p] = p.CanCollide
-                            p.CanCollide = false
-                        end
-                    end
-                end
-                
                 task.wait(tpItemSpeed)
-                if stopTeleportItems then
-                    for p, coll in pairs(oldCollisions) do if p and p.Parent then p.CanCollide = coll end end
-                    break
-                end
+                if stopTeleportItems then break end
                 
                 pcall(function()
                     if not part.Parent.PrimaryPart then part.Parent.PrimaryPart = part end
@@ -1406,11 +1392,6 @@ tpSelectBtn.MouseButton1Click:Connect(function()
                     if dragger then dragger:FireServer(part.Parent) end
                     part:PivotTo(itemDestCF)
                 end)
-                
-                for p, coll in pairs(oldCollisions) do
-                    if p and p.Parent then p.CanCollide = coll end
-                end
-                
                 task.wait(tpItemSpeed)
 
                 if part and part.Parent and (part.Position - itemDestCF.Position).Magnitude < 10 then
@@ -1452,17 +1433,6 @@ iButton("Sell Selected", function()
             
             for attempt = 1, 5 do
                 hrp.CFrame = CFrame.new(part.CFrame.p) * CFrame.new(0, 2, 0)
-                
-                local oldCollisions = {}
-                if part.Parent then
-                    for _, p in ipairs(part.Parent:GetDescendants()) do
-                        if p:IsA("BasePart") then
-                            oldCollisions[p] = p.CanCollide
-                            p.CanCollide = false
-                        end
-                    end
-                end
-
                 task.wait(tpItemSpeed)
                 
                 local sellCF = CFrame.new(314.776, -1.593, 87.807)
@@ -1481,11 +1451,6 @@ iButton("Sell Selected", function()
                     pcall(function() part.Size = Vector3.new(1, 1, 1) end)
                     part:PivotTo(sellCF)
                 end)
-                
-                for p, coll in pairs(oldCollisions) do
-                    if p and p.Parent then p.CanCollide = coll end
-                end
-                
                 task.wait(tpItemSpeed)
 
                 if part and part.Parent and (part.Position - sellCF.Position).Magnitude < 15 then
