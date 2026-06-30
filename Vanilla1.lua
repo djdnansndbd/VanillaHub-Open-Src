@@ -863,7 +863,7 @@ end)
 -- ════════════════════════════════════════════════════
 -- SHARED ITEM/DUPE STATE
 -- ════════════════════════════════════════════════════
-local tpItemSpeed = 0.45
+local tpItemSpeed = 0.3
 
 -- ════════════════════════════════════════════════════
 -- ITEM TAB
@@ -1376,7 +1376,7 @@ tpSelectBtn.MouseButton1Click:Connect(function()
                 and CFrame.new(destCF.Position) * CFrame.Angles(0, yaw, 0) * CFrame.Angles(math.rad(90), 0, 0)
                 or  CFrame.new(destCF.Position)
             for attempt = 1, 5 do
-                -- hrp.CFrame = CFrame.new(part.CFrame.p + approachOffset) -- Removed to prevent character teleporting
+                hrp.CFrame = CFrame.new(part.CFrame.p + approachOffset)
                 task.wait(tpItemSpeed)
                 if stopTeleportItems then break end
                 pcall(function()
