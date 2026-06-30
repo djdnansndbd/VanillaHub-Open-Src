@@ -863,7 +863,7 @@ end)
 -- ════════════════════════════════════════════════════
 -- SHARED ITEM/DUPE STATE
 -- ════════════════════════════════════════════════════
-local tpItemSpeed = 0.2
+local tpItemSpeed = 0.3
 
 -- ════════════════════════════════════════════════════
 -- ITEM TAB
@@ -945,67 +945,307 @@ local function iToggle(text, default, cb)
     end)
     return frame
 end
+local function iDropdown(labelText, defaultText, refreshFunc, selectCb)
+    local selected = defaultText
+    local isOpen   = false
+    local ITEM_H   = 32
+    local MAX_SHOW = 5
+    local HEADER_H = 38
 
-local function iDropdown(text, defaultText, refreshFunc, selectCb)
-    local frame = Instance.new("Frame", itemPage)
-    frame.Size = UDim2.new(1, 0, 0, 36)
-    frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-    frame.BorderSizePixel = 0
-    frame.ClipsDescendants = true
-    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 8)
-    
-    local lbl = Instance.new("TextLabel", frame)
-    lbl.Size = UDim2.new(1, -130, 0, 36); lbl.Position = UDim2.new(0, 12, 0, 0)
-    lbl.BackgroundTransparency = 1; lbl.Text = text; lbl.Font = Enum.Font.GothamSemibold
-    lbl.TextSize = 13; lbl.TextColor3 = THEME_TEXT; lbl.TextXAlignment = Enum.TextXAlignment.Left
-    
-    local topBtn = Instance.new("TextButton", frame)
-    topBtn.Size = UDim2.new(0, 110, 0, 24); topBtn.Position = UDim2.new(1, -118, 0, 6)
-    topBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-    topBtn.Text = defaultText; topBtn.Font = Enum.Font.Gotham
-    topBtn.TextSize = 12; topBtn.TextColor3 = THEME_TEXT
-    Instance.new("UICorner", topBtn).CornerRadius = UDim.new(0, 6)
-    
-    local listFrame = Instance.new("ScrollingFrame", frame)
-    listFrame.Size = UDim2.new(1, 0, 0, 120)
-    listFrame.Position = UDim2.new(0, 0, 0, 36)
-    listFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-    listFrame.BorderSizePixel = 0
-    listFrame.ScrollBarThickness = 4
-    listFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-    
-    local listLayout = Instance.new("UIListLayout", listFrame)
-    listLayout.Padding = UDim.new(0, 2)
-    
-    local open = false
-    topBtn.MouseButton1Click:Connect(function()
-        open = not open
-        if open and refreshFunc then
-            for _, v in ipairs(listFrame:GetChildren()) do
-                if v:IsA("TextButton") then v:Destroy() end
-            end
-            local options = refreshFunc()
-            listFrame.CanvasSize = UDim2.new(0, 0, 0, #options * 26)
-            for _, opt in ipairs(options) do
-                local ob = Instance.new("TextButton", listFrame)
-                ob.Size = UDim2.new(1, -8, 0, 24)
-                ob.Position = UDim2.new(0, 4, 0, 0)
-                ob.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-                ob.Text = opt; ob.Font = Enum.Font.Gotham
-                ob.TextSize = 12; ob.TextColor3 = THEME_TEXT
-                Instance.new("UICorner", ob).CornerRadius = UDim.new(0, 4)
-                ob.MouseButton1Click:Connect(function()
-                    open = false
-                    TweenService:Create(frame, TweenInfo.new(0.2), {Size = UDim2.new(1, 0, 0, 36)}):Play()
-                    topBtn.Text = opt
-                    if selectCb then selectCb(opt) end
-                end)
-            end
-        end
-        TweenService:Create(frame, TweenInfo.new(0.2), {Size = UDim2.new(1, 0, 0, open and 156 or 36)}):Play()
+    local outer = Instance.new("Frame", itemPage)
+    outer.Size             = UDim2.new(1, 0, 0, HEADER_H)
+    outer.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    outer.BorderSizePixel  = 0
+    outer.ClipsDescendants = true
+    Instance.new("UICorner", outer).CornerRadius = UDim.new(0, 7)
+    local outerStroke = Instance.new("UIStroke", outer)
+    outerStroke.Color        = Color3.fromRGB(55, 55, 55)
+    outerStroke.Thickness    = 1
+    outerStroke.Transparency = 0.3
+
+    local header = Instance.new("Frame", outer)
+    header.Size                   = UDim2.new(1, 0, 0, HEADER_H)
+    header.BackgroundTransparency = 1
+
+    local lbl = Instance.new("TextLabel", header)
+    lbl.Size               = UDim2.new(0, 110, 1, 0)
+    lbl.Position           = UDim2.new(0, 10, 0, 0)
+    lbl.BackgroundTransparency = 1
+    lbl.Text               = labelText
+    lbl.Font               = Enum.Font.GothamBold
+    lbl.TextSize           = 11
+    lbl.TextColor3         = Color3.fromRGB(130, 130, 130)
+    lbl.TextXAlignment     = Enum.TextXAlignment.Left
+
+    local selFrame = Instance.new("Frame", header)
+    selFrame.Size             = UDim2.new(1, -126, 0, 26)
+    selFrame.Position         = UDim2.new(0, 118, 0.5, -13)
+    selFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    selFrame.BorderSizePixel  = 0
+    Instance.new("UICorner", selFrame).CornerRadius = UDim.new(0, 5)
+    local selStroke = Instance.new("UIStroke", selFrame)
+    selStroke.Color        = Color3.fromRGB(70, 70, 70)
+    selStroke.Thickness    = 1
+    selStroke.Transparency = 0.3
+
+    local avatar = Instance.new("ImageLabel", selFrame)
+    avatar.Size             = UDim2.new(0, 18, 0, 18)
+    avatar.Position         = UDim2.new(0, 5, 0.5, -9)
+    avatar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    avatar.BorderSizePixel  = 0
+    avatar.Image            = ""
+    avatar.ScaleType        = Enum.ScaleType.Crop
+    Instance.new("UICorner", avatar).CornerRadius = UDim.new(1, 0)
+
+    local selLbl = Instance.new("TextLabel", selFrame)
+    selLbl.Size               = UDim2.new(1, -44, 1, 0)
+    selLbl.Position           = UDim2.new(0, 28, 0, 0)
+    selLbl.BackgroundTransparency = 1
+    selLbl.Text               = selected
+    selLbl.Font               = Enum.Font.GothamSemibold
+    selLbl.TextSize           = 11
+    selLbl.TextColor3         = THEME_TEXT
+    selLbl.TextXAlignment     = Enum.TextXAlignment.Left
+
+    local arrowLbl = Instance.new("TextLabel", selFrame)
+    arrowLbl.Size               = UDim2.new(0, 16, 1, 0)
+    arrowLbl.Position           = UDim2.new(1, -20, 0, 0)
+    arrowLbl.BackgroundTransparency = 1
+    arrowLbl.Text               = "▼"
+    arrowLbl.Font               = Enum.Font.GothamBold
+    arrowLbl.TextSize           = 10
+    arrowLbl.TextColor3         = Color3.fromRGB(155, 155, 155)
+
+    local dropdownBtn = Instance.new("TextButton", selFrame)
+    dropdownBtn.Size               = UDim2.new(1, 0, 1, 0)
+    dropdownBtn.BackgroundTransparency = 1
+    dropdownBtn.Text               = ""
+    dropdownBtn.AutoButtonColor    = false
+    dropdownBtn.ZIndex             = 5
+
+    local divider = Instance.new("Frame", outer)
+    divider.Size                   = UDim2.new(1, -24, 0, 1)
+    divider.Position               = UDim2.new(0, 12, 0, HEADER_H)
+    divider.BackgroundColor3       = Color3.fromRGB(45, 45, 45)
+    divider.BorderSizePixel        = 0
+    divider.Visible                = false
+
+    local listScroll = Instance.new("ScrollingFrame", outer)
+    listScroll.Position               = UDim2.new(0, 0, 0, HEADER_H + 2)
+    listScroll.Size                   = UDim2.new(1, 0, 0, 0)
+    listScroll.BackgroundTransparency = 1
+    listScroll.BorderSizePixel        = 0
+    listScroll.ScrollBarThickness     = 3
+    listScroll.ScrollBarImageColor3   = Color3.fromRGB(100, 100, 100)
+    listScroll.CanvasSize             = UDim2.new(0, 0, 0, 0)
+    listScroll.ClipsDescendants       = true
+
+    local listLayout = Instance.new("UIListLayout", listScroll)
+    listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    listLayout.Padding   = UDim.new(0, 2)
+    listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        listScroll.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 6)
     end)
-    return frame
+    local listPad = Instance.new("UIPadding", listScroll)
+    listPad.PaddingTop    = UDim.new(0, 3)
+    listPad.PaddingBottom = UDim.new(0, 3)
+    listPad.PaddingLeft   = UDim.new(0, 5)
+    listPad.PaddingRight  = UDim.new(0, 5)
+
+    local function clearSelected()
+        selected          = defaultText
+        selLbl.Text       = defaultText
+        selLbl.TextColor3 = Color3.fromRGB(130, 130, 130)
+        avatar.Image      = ""
+    end
+
+    local function setSelected(name, userId)
+        selected            = name
+        selLbl.Text         = name
+        selLbl.TextColor3   = THEME_TEXT
+        arrowLbl.TextColor3 = Color3.fromRGB(155, 155, 155)
+        outerStroke.Color   = Color3.fromRGB(100, 100, 100)
+        if userId then
+            task.spawn(function()
+                pcall(function()
+                    avatar.Image = Players:GetUserThumbnailAsync(
+                        userId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size48x48)
+                end)
+            end)
+        else
+            avatar.Image = ""
+        end
+    end
+
+    local function closeList()
+        isOpen = false
+        TweenService:Create(arrowLbl,   TweenInfo.new(0.18, Enum.EasingStyle.Quint), {Rotation = 0}):Play()
+        TweenService:Create(outer,      TweenInfo.new(0.20, Enum.EasingStyle.Quint), {Size = UDim2.new(1,0,0,HEADER_H)}):Play()
+        TweenService:Create(listScroll, TweenInfo.new(0.20, Enum.EasingStyle.Quint), {Size = UDim2.new(1,0,0,0)}):Play()
+        divider.Visible = false
+    end
+
+    local function buildList()
+        for _, c in ipairs(listScroll:GetChildren()) do
+            if c:IsA("Frame") or c:IsA("TextButton") then c:Destroy() end
+        end
+        local playerList = refreshFunc and refreshFunc() or {}
+        
+        local noneBtn = Instance.new("Frame", listScroll)
+        noneBtn.Size = UDim2.new(1, 0, 0, ITEM_H)
+        noneBtn.BackgroundColor3 = (selected == defaultText) and Color3.fromRGB(60,60,60) or Color3.fromRGB(20, 20, 20)
+        noneBtn.BorderSizePixel = 0
+        noneBtn.LayoutOrder = 0
+        Instance.new("UICorner", noneBtn).CornerRadius = UDim.new(0, 5)
+        
+        local noneLbl = Instance.new("TextLabel", noneBtn)
+        noneLbl.Size = UDim2.new(1, -58, 1, 0)
+        noneLbl.Position = UDim2.new(0, 32, 0, 0)
+        noneLbl.BackgroundTransparency = 1
+        noneLbl.Text = defaultText
+        noneLbl.Font = Enum.Font.GothamSemibold
+        noneLbl.TextSize = 12
+        noneLbl.TextColor3 = (selected == defaultText) and THEME_TEXT or Color3.fromRGB(155, 155, 155)
+        noneLbl.TextXAlignment = Enum.TextXAlignment.Left
+        
+        local nBtn = Instance.new("TextButton", noneBtn)
+        nBtn.Size = UDim2.new(1, 0, 1, 0)
+        nBtn.BackgroundTransparency = 1
+        nBtn.Text = ""
+        nBtn.AutoButtonColor = false
+        nBtn.ZIndex = 5
+        nBtn.MouseEnter:Connect(function()
+            if defaultText ~= selected then TweenService:Create(noneBtn, TweenInfo.new(0.08), {BackgroundColor3 = Color3.fromRGB(40,40,40)}):Play() end
+        end)
+        nBtn.MouseLeave:Connect(function()
+            if defaultText ~= selected then TweenService:Create(noneBtn, TweenInfo.new(0.08), {BackgroundColor3 = Color3.fromRGB(20, 20, 20)}):Play() end
+        end)
+        nBtn.MouseButton1Click:Connect(function()
+            if defaultText == selected then clearSelected() else setSelected(defaultText, nil) end
+            if selectCb then selectCb(defaultText) end
+            buildList()
+            task.delay(0.04, closeList)
+        end)
+
+        for i, plr in ipairs(playerList) do
+            local isSel = (plr.Name == selected)
+            local row = Instance.new("Frame", listScroll)
+            row.Size             = UDim2.new(1, 0, 0, ITEM_H)
+            row.BackgroundColor3 = isSel and Color3.fromRGB(60,60,60) or Color3.fromRGB(20, 20, 20)
+            row.BorderSizePixel  = 0
+            row.LayoutOrder      = i
+            Instance.new("UICorner", row).CornerRadius = UDim.new(0, 5)
+
+            local miniAvatar = Instance.new("ImageLabel", row)
+            miniAvatar.Size             = UDim2.new(0, 20, 0, 20)
+            miniAvatar.Position         = UDim2.new(0, 6, 0.5, -10)
+            miniAvatar.BackgroundColor3 = Color3.fromRGB(32, 32, 32)
+            miniAvatar.BorderSizePixel  = 0
+            miniAvatar.ScaleType        = Enum.ScaleType.Crop
+            Instance.new("UICorner", miniAvatar).CornerRadius = UDim.new(1, 0)
+            task.spawn(function()
+                pcall(function()
+                    miniAvatar.Image = Players:GetUserThumbnailAsync(
+                        plr.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size48x48)
+                end)
+            end)
+
+            local nameLbl2 = Instance.new("TextLabel", row)
+            nameLbl2.Size               = UDim2.new(1, -58, 1, 0)
+            nameLbl2.Position           = UDim2.new(0, 32, 0, 0)
+            nameLbl2.BackgroundTransparency = 1
+            nameLbl2.Text               = plr.Name
+            nameLbl2.Font               = Enum.Font.GothamSemibold
+            nameLbl2.TextSize           = 12
+            nameLbl2.TextColor3         = isSel and THEME_TEXT or Color3.fromRGB(155, 155, 155)
+            nameLbl2.TextXAlignment     = Enum.TextXAlignment.Left
+            nameLbl2.TextTruncate       = Enum.TextTruncate.AtEnd
+
+            if isSel then
+                local check = Instance.new("TextLabel", row)
+                check.Size               = UDim2.new(0, 22, 1, 0)
+                check.Position           = UDim2.new(1, -26, 0, 0)
+                check.BackgroundTransparency = 1
+                check.Text               = "✓"
+                check.Font               = Enum.Font.GothamBold
+                check.TextSize           = 13
+                check.TextColor3         = Color3.fromRGB(240, 240, 240)
+                check.TextXAlignment     = Enum.TextXAlignment.Center
+            end
+
+            local rowBtn = Instance.new("TextButton", row)
+            rowBtn.Size               = UDim2.new(1, 0, 1, 0)
+            rowBtn.BackgroundTransparency = 1
+            rowBtn.Text               = ""
+            rowBtn.AutoButtonColor    = false
+            rowBtn.ZIndex             = 5
+            rowBtn.MouseEnter:Connect(function()
+                if plr.Name ~= selected then
+                    TweenService:Create(row, TweenInfo.new(0.08), {BackgroundColor3 = Color3.fromRGB(40,40,40)}):Play()
+                end
+            end)
+            rowBtn.MouseLeave:Connect(function()
+                if plr.Name ~= selected then
+                    TweenService:Create(row, TweenInfo.new(0.08), {BackgroundColor3 = Color3.fromRGB(20, 20, 20)}):Play()
+                end
+            end)
+            rowBtn.MouseButton1Click:Connect(function()
+                if plr.Name == selected then clearSelected() else setSelected(plr.Name, plr.UserId) end
+                if selectCb then selectCb(plr.Name) end
+                buildList()
+                task.delay(0.04, closeList)
+            end)
+        end
+    end
+
+    local function openList()
+        isOpen = true
+        buildList()
+        local count  = #(refreshFunc and refreshFunc() or {}) + 1
+        local listH  = math.min(count, MAX_SHOW) * (ITEM_H + 2) + 8
+        local totalH = HEADER_H + 2 + listH
+        divider.Visible = true
+        TweenService:Create(arrowLbl,   TweenInfo.new(0.18, Enum.EasingStyle.Quint), {Rotation = 180}):Play()
+        TweenService:Create(outer,      TweenInfo.new(0.22, Enum.EasingStyle.Quint), {Size = UDim2.new(1,0,0,totalH)}):Play()
+        TweenService:Create(listScroll, TweenInfo.new(0.22, Enum.EasingStyle.Quint), {Size = UDim2.new(1,0,0,listH)}):Play()
+    end
+
+    dropdownBtn.MouseButton1Click:Connect(function()
+        if isOpen then closeList() else openList() end
+    end)
+    dropdownBtn.MouseEnter:Connect(function()
+        TweenService:Create(selFrame, TweenInfo.new(0.10), {BackgroundColor3 = Color3.fromRGB(42,42,42)}):Play()
+    end)
+    dropdownBtn.MouseLeave:Connect(function()
+        TweenService:Create(selFrame, TweenInfo.new(0.10), {BackgroundColor3 = Color3.fromRGB(30, 30, 30)}):Play()
+    end)
+    
+    Players.PlayerRemoving:Connect(function(leaving)
+        if leaving.Name == selected then
+            clearSelected()
+            if selectCb then selectCb(defaultText) end
+        end
+        if isOpen then
+            buildList()
+            local count = #(refreshFunc and refreshFunc() or {}) + 1
+            local listH = math.min(count, MAX_SHOW) * (ITEM_H + 2) + 8
+            outer.Size      = UDim2.new(1, 0, 0, HEADER_H + 2 + listH)
+            listScroll.Size = UDim2.new(1, 0, 0, listH)
+        end
+    end)
+    Players.PlayerAdded:Connect(function()
+        if isOpen then
+            buildList()
+            local count = #(refreshFunc and refreshFunc() or {}) + 1
+            local listH = math.min(count, MAX_SHOW) * (ITEM_H + 2) + 8
+            outer.Size      = UDim2.new(1, 0, 0, HEADER_H + 2 + listH)
+            listScroll.Size = UDim2.new(1, 0, 0, listH)
+        end
+    end)
+
+    return outer
 end
+
 
 local function iSlider(text, minV, maxV, defV, cb)
     local frame = Instance.new("Frame", itemPage)
@@ -1213,15 +1453,18 @@ end
 -- ── Selection ────────────────────────────────────────
 iSectionLabel("Selection")
 
-iDropdown("Select From Player", "None", function()
-    local list = {"None"}
+iDropdown("Select Player", "None", function()
+    local list = {}
     for _, p in ipairs(Players:GetPlayers()) do
-        if p ~= player then table.insert(list, p.Name) end
+        if p ~= player then table.insert(list, p) end
     end
+    table.sort(list, function(a, b) return a.Name < b.Name end)
     return list
 end, function(val)
     if val == "None" then selectedOtherPlayer = nil else selectedOtherPlayer = val end
 end)
+
+warn("[VanillaHub] Item Tab 'Select From Player' dropdown rendered successfully")
 
 iToggle("Click Select", false, function(val)
     clickSelectEnabled = val
@@ -1545,7 +1788,7 @@ end)
 
 -- ════════════════════════════════════════════════════
 -- DUPE TAB
--- ════════════════════════════════════════════════════
+-- ----------------------------------------------------
 local dupePage = pages["DupeTab"]
 local dupeList = dupePage:FindFirstChildOfClass("UIListLayout")
 if dupeList then dupeList.Padding = UDim.new(0, 8) end
@@ -1576,7 +1819,7 @@ end
 
 dSectionLabel("Info")
 
--- ════════════════════════════════════════════════════
+----
 -- SEARCH TAB
 -- ════════════════════════════════════════════════════
 local searchTabPage = pages["SearchTab"]
