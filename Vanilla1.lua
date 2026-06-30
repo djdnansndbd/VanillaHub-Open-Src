@@ -1328,6 +1328,31 @@ tpSelectBtn.MouseButton1Click:Connect(function()
             TweenService:Create(tpSelectBtn,TweenInfo.new(0.2),{BackgroundColor3=BTN_COLOR}):Play()
             return
         end
+        
+        local cam = workspace.CurrentCamera
+        local oldSubject = cam and cam.CameraSubject
+        local fakeChar
+        local savedTransparencies = {}
+        
+        if player.Character then
+            player.Character.Archivable = true
+            fakeChar = player.Character:Clone()
+            if fakeChar then
+                fakeChar.Parent = workspace
+                if OldPos then fakeChar:PivotTo(OldPos) end
+                if cam then cam.CameraSubject = fakeChar:FindFirstChild("Humanoid") end
+                for _, v in pairs(player.Character:GetDescendants()) do
+                    if v:IsA("BasePart") and v.Name ~= "HumanoidRootPart" then
+                        savedTransparencies[v] = v.Transparency
+                        v.Transparency = 1
+                    elseif v:IsA("Decal") or v:IsA("Texture") then
+                        savedTransparencies[v] = v.Transparency
+                        v.Transparency = 1
+                    end
+                end
+            end
+        end
+
         local selectedParts = {}
         for _, v in next, workspace.PlayerModels:GetDescendants() do
             if v.Name == "Selection" then
@@ -1401,6 +1426,15 @@ tpSelectBtn.MouseButton1Click:Connect(function()
         if returnToPos and OldPos and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
             player.Character.HumanoidRootPart.CFrame = OldPos
         end
+        
+        if fakeChar then fakeChar:Destroy() end
+        if cam and oldSubject then cam.CameraSubject = oldSubject end
+        for v, orig in pairs(savedTransparencies) do
+            if v and v.Parent then
+                v.Transparency = orig
+            end
+        end
+
         isTeleportingItems = false; stopTeleportItems = false
         tpSelectBtn.Text = "Teleport Selected"
         TweenService:Create(tpSelectBtn, TweenInfo.new(0.2), {BackgroundColor3 = BTN_COLOR}):Play()
@@ -1413,6 +1447,30 @@ iButton("Sell Selected", function()
         and player.Character.HumanoidRootPart.CFrame
     if not workspace:FindFirstChild("PlayerModels") then return end
     task.spawn(function()
+        local cam = workspace.CurrentCamera
+        local oldSubject = cam and cam.CameraSubject
+        local fakeChar
+        local savedTransparencies = {}
+        
+        if player.Character then
+            player.Character.Archivable = true
+            fakeChar = player.Character:Clone()
+            if fakeChar then
+                fakeChar.Parent = workspace
+                if OldPos then fakeChar:PivotTo(OldPos) end
+                if cam then cam.CameraSubject = fakeChar:FindFirstChild("Humanoid") end
+                for _, v in pairs(player.Character:GetDescendants()) do
+                    if v:IsA("BasePart") and v.Name ~= "HumanoidRootPart" then
+                        savedTransparencies[v] = v.Transparency
+                        v.Transparency = 1
+                    elseif v:IsA("Decal") or v:IsA("Texture") then
+                        savedTransparencies[v] = v.Transparency
+                        v.Transparency = 1
+                    end
+                end
+            end
+        end
+
         for _, v in next, workspace.PlayerModels:GetDescendants() do
             if v.Name == "Selection" then
                 local part = v.Parent
@@ -1438,6 +1496,14 @@ iButton("Sell Selected", function()
         end
         if OldPos and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
             player.Character.HumanoidRootPart.CFrame = OldPos
+        end
+        
+        if fakeChar then fakeChar:Destroy() end
+        if cam and oldSubject then cam.CameraSubject = oldSubject end
+        for v, orig in pairs(savedTransparencies) do
+            if v and v.Parent then
+                v.Transparency = orig
+            end
         end
     end)
 end)
