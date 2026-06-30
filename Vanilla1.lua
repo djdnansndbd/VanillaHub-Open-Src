@@ -1360,35 +1360,43 @@ tpSelectBtn.MouseButton1Click:Connect(function()
                 return getItemType(a) < getItemType(b)
             end)
         end
-        for _, part in ipairs(selectedParts) do
+        for i, part in ipairs(selectedParts) do
             if stopTeleportItems then break end
+            if tpSelectBtn and tpSelectBtn.Parent then
+                tpSelectBtn.Text = "Stop (" .. (#selectedParts - i + 1) .. " left)"
+            end
             local char = player.Character; local hrp = char and char:FindFirstChild("HumanoidRootPart")
             if not hrp then task.wait(tpItemSpeed); continue end
             -- Approach the item from the side the player faces (horiz) or from above (vert)
             local approachOffset = tpAxisMode == "horizontal"
                 and (facingDir * 5)
                 or Vector3.new(0, 5, 0)
-            hrp.CFrame = CFrame.new(part.CFrame.p + approachOffset)
-            task.wait(tpItemSpeed)
-            if stopTeleportItems then break end
-            pcall(function()
-                if not part.Parent.PrimaryPart then part.Parent.PrimaryPart = part end
-                local dragger = ReplicatedStorage:FindFirstChild("Interaction")
-                    and ReplicatedStorage.Interaction:FindFirstChild("ClientIsDragging")
-                local timeout = 0
-                while not isnetworkowner(part) and timeout < 3 do
+            local yaw = math.atan2(facingDir.X, facingDir.Z)
+            local itemDestCF = tpAxisMode == "horizontal"
+                and CFrame.new(destCF.Position) * CFrame.Angles(0, yaw, 0) * CFrame.Angles(math.rad(90), 0, 0)
+                or  CFrame.new(destCF.Position)
+            for attempt = 1, 5 do
+                hrp.CFrame = CFrame.new(part.CFrame.p + approachOffset)
+                task.wait(tpItemSpeed)
+                if stopTeleportItems then break end
+                pcall(function()
+                    if not part.Parent.PrimaryPart then part.Parent.PrimaryPart = part end
+                    local dragger = ReplicatedStorage:FindFirstChild("Interaction")
+                        and ReplicatedStorage.Interaction:FindFirstChild("ClientIsDragging")
+                    local timeout = 0
+                    while not isnetworkowner(part) and timeout < 3 do
+                        if dragger then dragger:FireServer(part.Parent) end
+                        task.wait(0.05); timeout = timeout + 0.05
+                    end
                     if dragger then dragger:FireServer(part.Parent) end
-                    task.wait(0.05); timeout = timeout + 0.05
+                    part:PivotTo(itemDestCF)
+                end)
+                task.wait(tpItemSpeed)
+                if part and part.Parent and (part.Position - itemDestCF.Position).Magnitude < 10 then
+                    break
                 end
-                if dragger then dragger:FireServer(part.Parent) end
-                local yaw = math.atan2(facingDir.X, facingDir.Z)
-                local itemDestCF = tpAxisMode == "horizontal"
-                    and CFrame.new(destCF.Position) * CFrame.Angles(0, yaw, 0) * CFrame.Angles(math.rad(90), 0, 0)
-                    or  CFrame.new(destCF.Position)
-                part:PivotTo(itemDestCF)
-            end)
+            end
             deselectPart(part)
-            task.wait(tpItemSpeed)
         end
         if returnToPos and OldPos and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
             player.Character.HumanoidRootPart.CFrame = OldPos
