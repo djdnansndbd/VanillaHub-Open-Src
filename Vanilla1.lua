@@ -1363,7 +1363,7 @@ tpSelectBtn.MouseButton1Click:Connect(function()
         for i, part in ipairs(selectedParts) do
             if stopTeleportItems then break end
             if tpSelectBtn and tpSelectBtn.Parent then
-                tpSelectBtn.Text = "Stop (" .. (#selectedParts - i + 1) .. " left)"
+                tpSelectBtn.Text = string.format("Stop  [ %d / %d ]", (#selectedParts - i + 1), #selectedParts)
             end
             local char = player.Character; local hrp = char and char:FindFirstChild("HumanoidRootPart")
             if not hrp then task.wait(tpItemSpeed); continue end
@@ -1430,6 +1430,7 @@ iButton("Sell Selected", function()
                         task.wait(0.05); timeout = timeout + 0.05
                     end
                     if dragger then dragger:FireServer(part.Parent) end
+                    pcall(function() part.Size = Vector3.new(1, 1, 1) end)
                     part:PivotTo(CFrame.new(314.776,-1.593,87.807))
                 end)
                 task.wait(tpItemSpeed)
