@@ -1573,22 +1573,33 @@ startBatchBtn.MouseButton1Click:Connect(function()
             for _, p in ipairs(truckModel:GetDescendants()) do if p:IsA("BasePart") then ignoredParts[p] = true end end
             for _, p in ipairs(Char:GetDescendants())       do if p:IsA("BasePart") then ignoredParts[p] = true end end
 
-            for _, part in ipairs(workspace:GetDescendants()) do
+            local partsToCheck = {}
+            if workspace:FindFirstChild("PlayerModels") then
+                for _, p in ipairs(workspace.PlayerModels:GetDescendants()) do
+                    if p.Name == "Main" and p:IsA("BasePart") then table.insert(partsToCheck, p) end
+                end
+            end
+            if workspace:FindFirstChild("LogModels") then
+                for _, p in ipairs(workspace.LogModels:GetDescendants()) do
+                    if p.Name == "WoodSection" and p:IsA("BasePart") then table.insert(partsToCheck, p) end
+                end
+            end
+
+            for i, part in ipairs(partsToCheck) do
+                if i % 100 == 0 then task.wait() end -- Prevents the game from freezing
                 if not batchTruckRunning then break end
-                if part:IsA("BasePart") and not ignoredParts[part] then
-                    if part.Name == "Main" or part.Name == "WoodSection" then
-                        if part:FindFirstChild("Weld") and part.Weld.Part1 and part.Weld.Part1.Parent ~= part.Parent then continue end
-                        task.spawn(function()
-                            if isPointInside(part.Position, mCF, mSz) then
-                                TeleportThisTruck()
-                                local PCF  = part.CFrame
-                                local nP   = PCF.Position - GiveBaseOrigin.Position + ReceiverBaseOrigin.Position
-                                local tOff = CFrame.new(nP) * PCF.Rotation
-                                part.CFrame = tOff; task.wait(0.3)
-                                table.insert(allTeleportedParts, {Instance=part, OldPos=part.Position, TargetCFrame=tOff})
-                            end
-                        end)
-                    end
+                if not ignoredParts[part] then
+                    if part:FindFirstChild("Weld") and part.Weld.Part1 and part.Weld.Part1.Parent ~= part.Parent then continue end
+                    task.spawn(function()
+                        if isPointInside(part.Position, mCF, mSz) then
+                            TeleportThisTruck()
+                            local PCF  = part.CFrame
+                            local nP   = PCF.Position - GiveBaseOrigin.Position + ReceiverBaseOrigin.Position
+                            local tOff = CFrame.new(nP) * PCF.Rotation
+                            part.CFrame = tOff; task.wait(0.45)
+                            table.insert(allTeleportedParts, {Instance=part, OldPos=part.Position, TargetCFrame=tOff})
+                        end
+                    end)
                 end
             end
 
