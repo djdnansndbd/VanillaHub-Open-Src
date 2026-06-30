@@ -1701,18 +1701,9 @@ tpSelectBtn.MouseButton1Click:Connect(function()
             local approachOffset = tpAxisMode == "horizontal" and (facingDir * 5) or Vector3.new(0, 5, 0)
             local yaw = math.atan2(facingDir.X, facingDir.Z)
             
-            local itemDestCF
-            if tpAxisMode == "horizontal" then
-                -- Lay flat and stack vertically
-                local heightOffset = 1 + (i * 1.5)
-                itemDestCF = CFrame.new(destCF.Position + Vector3.new(0, heightOffset, 0)) * CFrame.Angles(0, yaw, 0) * CFrame.Angles(math.rad(90), 0, 0)
-            else
-                -- Stand upright and arrange in a side-by-side grid
-                local gridX = (i % 6) * 1.5
-                local gridZ = math.floor(i / 6) * 1.5
-                local sizeY = part.Size and (part.Size.Y / 2) or 2
-                itemDestCF = CFrame.new(destCF.Position + Vector3.new(gridX, sizeY + 0.5, gridZ))
-            end
+            local itemDestCF = tpAxisMode == "horizontal"
+                and CFrame.new(destCF.Position) * CFrame.Angles(0, yaw, 0) * CFrame.Angles(math.rad(90), 0, 0)
+                or  CFrame.new(destCF.Position)
             for attempt = 1, 5 do
                 if (hrp.Position - part.Position).Magnitude > 25 then
                     hrp.CFrame = CFrame.new(part.CFrame.p + approachOffset)
