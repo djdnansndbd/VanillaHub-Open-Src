@@ -946,6 +946,67 @@ local function iToggle(text, default, cb)
     return frame
 end
 
+local function iDropdown(text, defaultText, refreshFunc, selectCb)
+    local frame = Instance.new("Frame", itemPage)
+    frame.Size = UDim2.new(1, 0, 0, 36)
+    frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    frame.BorderSizePixel = 0
+    frame.ClipsDescendants = true
+    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 8)
+    
+    local lbl = Instance.new("TextLabel", frame)
+    lbl.Size = UDim2.new(1, -130, 0, 36); lbl.Position = UDim2.new(0, 12, 0, 0)
+    lbl.BackgroundTransparency = 1; lbl.Text = text; lbl.Font = Enum.Font.GothamSemibold
+    lbl.TextSize = 13; lbl.TextColor3 = THEME_TEXT; lbl.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local topBtn = Instance.new("TextButton", frame)
+    topBtn.Size = UDim2.new(0, 110, 0, 24); topBtn.Position = UDim2.new(1, -118, 0, 6)
+    topBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    topBtn.Text = defaultText; topBtn.Font = Enum.Font.Gotham
+    topBtn.TextSize = 12; topBtn.TextColor3 = THEME_TEXT
+    Instance.new("UICorner", topBtn).CornerRadius = UDim.new(0, 6)
+    
+    local listFrame = Instance.new("ScrollingFrame", frame)
+    listFrame.Size = UDim2.new(1, 0, 0, 120)
+    listFrame.Position = UDim2.new(0, 0, 0, 36)
+    listFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    listFrame.BorderSizePixel = 0
+    listFrame.ScrollBarThickness = 4
+    listFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+    
+    local listLayout = Instance.new("UIListLayout", listFrame)
+    listLayout.Padding = UDim.new(0, 2)
+    
+    local open = false
+    topBtn.MouseButton1Click:Connect(function()
+        open = not open
+        if open and refreshFunc then
+            for _, v in ipairs(listFrame:GetChildren()) do
+                if v:IsA("TextButton") then v:Destroy() end
+            end
+            local options = refreshFunc()
+            listFrame.CanvasSize = UDim2.new(0, 0, 0, #options * 26)
+            for _, opt in ipairs(options) do
+                local ob = Instance.new("TextButton", listFrame)
+                ob.Size = UDim2.new(1, -8, 0, 24)
+                ob.Position = UDim2.new(0, 4, 0, 0)
+                ob.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+                ob.Text = opt; ob.Font = Enum.Font.Gotham
+                ob.TextSize = 12; ob.TextColor3 = THEME_TEXT
+                Instance.new("UICorner", ob).CornerRadius = UDim.new(0, 4)
+                ob.MouseButton1Click:Connect(function()
+                    open = false
+                    TweenService:Create(frame, TweenInfo.new(0.2), {Size = UDim2.new(1, 0, 0, 36)}):Play()
+                    topBtn.Text = opt
+                    if selectCb then selectCb(opt) end
+                end)
+            end
+        end
+        TweenService:Create(frame, TweenInfo.new(0.2), {Size = UDim2.new(1, 0, 0, open and 156 or 36)}):Play()
+    end)
+    return frame
+end
+
 local function iSlider(text, minV, maxV, defV, cb)
     local frame = Instance.new("Frame", itemPage)
     frame.Size = UDim2.new(1, 0, 0, 54); frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
@@ -1025,18 +1086,23 @@ local function deselectAll()
 end
 table.insert(cleanupTasks, deselectAll)
 
-local function isOwnedByMe(model)
+local selectedOtherPlayer = nil
+
+local function isSelectable(model)
     local owner = model:FindFirstChild("Owner")
     if not owner then return false end
     local os = owner:FindFirstChild("OwnerString")
-    return os and os.Value == player.Name
+    if not os then return false end
+    if os.Value == player.Name then return true end
+    if selectedOtherPlayer and os.Value == selectedOtherPlayer then return true end
+    return false
 end
 
 local function trySelect(target)
     if not target then return end
     local par = target.Parent; if not par then return end
     if not par:FindFirstChild("Owner") then return end
-    if not isOwnedByMe(par) then return end
+    if not isSelectable(par) then return end
     if par:FindFirstChild("Main") then
         local tPart = par.Main
         if target == tPart or target:IsDescendantOf(tPart) then
@@ -1052,7 +1118,7 @@ local function trySelect(target)
         end
     end
     local model = target:FindFirstAncestorOfClass("Model")
-    if model and model:FindFirstChild("Owner") and isOwnedByMe(model) then
+    if model and model:FindFirstChild("Owner") and isSelectable(model) then
         if model:FindFirstChild("Main") then
             local p = model.Main
             if p:FindFirstChild("Selection") then deselectPart(p) else selectPart(p) end
@@ -1079,7 +1145,7 @@ local function tryGroupSelect(target)
     local groupKey = getGroupKey(model)
     if not workspace:FindFirstChild("PlayerModels") then return end
     for _, v in pairs(workspace.PlayerModels:GetChildren()) do
-        if v:FindFirstChild("Owner") and isOwnedByMe(v) then
+        if v:FindFirstChild("Owner") and isSelectable(v) then
             if getGroupKey(v) == groupKey then
                 if v:FindFirstChild("Main") then selectPart(v.Main) end
                 if v:FindFirstChild("WoodSection") then selectPart(v.WoodSection) end
@@ -1119,7 +1185,7 @@ UserInputService.InputBegan:Connect(function(input)
         RunService.RenderStepped:Wait()
         lassoFrame.Size = UDim2.new(0, mouse.X, 0, mouse.Y) - lassoFrame.Position
         for _, v in pairs(workspace.PlayerModels:GetChildren()) do
-            if not isOwnedByMe(v) then continue end
+            if not isSelectable(v) then continue end
             if v:FindFirstChild("Main") then
                 local sp, vis = Camera:WorldToScreenPoint(v.Main.CFrame.p)
                 if vis and is_in_frame(sp, lassoFrame) then selectPart(v.Main) end
@@ -1146,6 +1212,17 @@ end
 
 -- ── Selection ────────────────────────────────────────
 iSectionLabel("Selection")
+
+iDropdown("Select From Player", "None", function()
+    local list = {"None"}
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p ~= player then table.insert(list, p.Name) end
+    end
+    return list
+end, function(val)
+    if val == "None" then selectedOtherPlayer = nil else selectedOtherPlayer = val end
+end)
+
 iToggle("Click Select", false, function(val)
     clickSelectEnabled = val
     if val then lassoEnabled = false; groupSelectEnabled = false end
