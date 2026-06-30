@@ -1372,10 +1372,9 @@ tpSelectBtn.MouseButton1Click:Connect(function()
                 and (facingDir * 5)
                 or Vector3.new(0, 5, 0)
             local yaw = math.atan2(facingDir.X, facingDir.Z)
-            local stackOffset = Vector3.new(0, i * 0.1, 0)
             local itemDestCF = tpAxisMode == "horizontal"
-                and CFrame.new(destCF.Position + stackOffset) * CFrame.Angles(0, yaw, 0) * CFrame.Angles(math.rad(90), 0, 0)
-                or  CFrame.new(destCF.Position + stackOffset)
+                and CFrame.new(destCF.Position) * CFrame.Angles(0, yaw, 0) * CFrame.Angles(math.rad(90), 0, 0)
+                or  CFrame.new(destCF.Position)
             for attempt = 1, 5 do
                 hrp.CFrame = CFrame.new(part.CFrame.p + approachOffset)
                 task.wait(tpItemSpeed)
@@ -1391,8 +1390,10 @@ tpSelectBtn.MouseButton1Click:Connect(function()
                     end
                     if dragger then dragger:FireServer(part.Parent) end
                     part:PivotTo(itemDestCF)
-                    part.AssemblyLinearVelocity = Vector3.new(0, -5, 0)
-                    part.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+                    part.Anchored = true
+                    task.delay(0.5, function()
+                        if part and part.Parent then pcall(function() part.Anchored = false end) end
+                    end)
                 end)
                 task.wait(tpItemSpeed)
                 if part and part.Parent and (part.Position - itemDestCF.Position).Magnitude < 10 then
@@ -1436,7 +1437,7 @@ iButton("Sell Selected", function()
                 hrp.CFrame = CFrame.new(part.CFrame.p) * CFrame.new(0, 2, 0)
                 task.wait(tpItemSpeed)
                 
-                local sellCF = CFrame.new(314.776, -1.593 + (i * 1.5), 87.807)
+                local sellCF = CFrame.new(314.776, -1.593, 87.807)
                 
                 pcall(function()
                     if not part.Parent.PrimaryPart then part.Parent.PrimaryPart = part end
@@ -1451,8 +1452,10 @@ iButton("Sell Selected", function()
                     
                     pcall(function() part.Size = Vector3.new(1, 1, 1) end)
                     part:PivotTo(sellCF)
-                    part.AssemblyLinearVelocity = Vector3.new(0, -50, 0)
-                    part.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+                    part.Anchored = true
+                    task.delay(0.2, function()
+                        if part and part.Parent then pcall(function() part.Anchored = false end) end
+                    end)
                 end)
                 task.wait(tpItemSpeed)
                 
