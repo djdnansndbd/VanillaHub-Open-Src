@@ -1141,7 +1141,7 @@ local function tryGroupSelect(target)
         model = target:FindFirstAncestorOfClass("Model")
     end
     if not (model and model:FindFirstChild("Owner")) then return end
-    if not isOwnedByMe(model) then return end
+    if not isSelectable(model) then return end
     local groupKey = getGroupKey(model)
     if not workspace:FindFirstChild("PlayerModels") then return end
     for _, v in pairs(workspace.PlayerModels:GetChildren()) do
