@@ -1390,10 +1390,6 @@ tpSelectBtn.MouseButton1Click:Connect(function()
                     end
                     if dragger then dragger:FireServer(part.Parent) end
                     part:PivotTo(itemDestCF)
-                    part.Anchored = true
-                    task.delay(0.5, function()
-                        if part and part.Parent then pcall(function() part.Anchored = false end) end
-                    end)
                 end)
                 task.wait(tpItemSpeed)
                 if part and part.Parent and (part.Position - itemDestCF.Position).Magnitude < 10 then
@@ -1452,10 +1448,6 @@ iButton("Sell Selected", function()
                     
                     pcall(function() part.Size = Vector3.new(1, 1, 1) end)
                     part:PivotTo(sellCF)
-                    part.Anchored = true
-                    task.delay(0.2, function()
-                        if part and part.Parent then pcall(function() part.Anchored = false end) end
-                    end)
                 end)
                 task.wait(tpItemSpeed)
                 
