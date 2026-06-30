@@ -254,7 +254,7 @@ Instance.new("UICorner", hubIcon).CornerRadius = UDim.new(0, 5)
 
 local titleLbl = Instance.new("TextLabel", topBar)
 titleLbl.Size = UDim2.new(1, -110, 1, 0); titleLbl.Position = UDim2.new(0, 44, 0, 0)
-titleLbl.BackgroundTransparency = 1; titleLbl.Text = "VanillaHub | LT2"
+titleLbl.BackgroundTransparency = 1; titleLbl.Text = "VanillaHub Is Skidded And Made With Ai "
 titleLbl.Font = Enum.Font.GothamBold; titleLbl.TextSize = 15
 titleLbl.TextColor3 = THEME_TEXT; titleLbl.TextXAlignment = Enum.TextXAlignment.Left; titleLbl.ZIndex = 5
 
