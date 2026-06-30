@@ -1585,23 +1585,49 @@ startBatchBtn.MouseButton1Click:Connect(function()
                 end
             end
 
+            local validPartsInTruck = {}
             for i, part in ipairs(partsToCheck) do
                 if i % 100 == 0 then task.wait() end -- Prevents the game from freezing
                 if not batchTruckRunning then break end
                 if not ignoredParts[part] then
                     if part:FindFirstChild("Weld") and part.Weld.Part1 and part.Weld.Part1.Parent ~= part.Parent then continue end
-                    task.spawn(function()
-                        if isPointInside(part.Position, mCF, mSz) then
-                            TeleportThisTruck()
-                            local PCF  = part.CFrame
-                            local nP   = PCF.Position - GiveBaseOrigin.Position + ReceiverBaseOrigin.Position
-                            local tOff = CFrame.new(nP) * PCF.Rotation
-                            part.CFrame = tOff; task.wait(0.45)
-                            table.insert(allTeleportedParts, {Instance=part, OldPos=part.Position, TargetCFrame=tOff})
-                        end
-                    end)
+                    if isPointInside(part.Position, mCF, mSz) then
+                        local PCF = part.CFrame
+                        local nP = PCF.Position - GiveBaseOrigin.Position + ReceiverBaseOrigin.Position
+                        table.insert(validPartsInTruck, {
+                            Instance = part,
+                            TargetCFrame = CFrame.new(nP) * PCF.Rotation
+                        })
+                    end
                 end
             end
+
+            if #validPartsInTruck > 0 then
+                for _ = 1, 5 do
+                    for _, data in ipairs(validPartsInTruck) do
+                        RS.Interaction.ClientIsDragging:FireServer(data.Instance.Parent)
+                    end
+                    task.wait(0.03)
+                end
+            end
+
+            TeleportThisTruck()
+
+            for _, data in ipairs(validPartsInTruck) do
+                data.Instance.CFrame = data.TargetCFrame
+                table.insert(allTeleportedParts, {Instance=data.Instance, OldPos=data.Instance.Position, TargetCFrame=data.TargetCFrame})
+            end
+
+            if #validPartsInTruck > 0 then
+                for _ = 1, 5 do
+                    for _, data in ipairs(validPartsInTruck) do
+                        data.Instance.CFrame = data.TargetCFrame
+                        RS.Interaction.ClientIsDragging:FireServer(data.Instance.Parent)
+                    end
+                    task.wait(0.03)
+                end
+            end
+            task.wait(0.2)
 
             local SitPart   = Char.Humanoid.SeatPart
             local DoorHinge = SitPart.Parent:FindFirstChild("PaintParts")
