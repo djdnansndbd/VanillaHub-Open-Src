@@ -1415,7 +1415,7 @@ iButton("Sell Selected", function()
                 local part = v.Parent
                 if not (part and part.Parent) then continue end
                 local char = player.Character; local hrp = char and char:FindFirstChild("HumanoidRootPart")
-                if hrp then hrp.CFrame = CFrame.new(part.CFrame.p) * CFrame.new(5,0,0) end
+                if hrp then hrp.CFrame = CFrame.new(part.CFrame.p) * CFrame.new(0,2,0) end
                 task.wait(tpItemSpeed)
                 pcall(function()
                     if not part.Parent.PrimaryPart then part.Parent.PrimaryPart = part end
