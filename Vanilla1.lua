@@ -1406,11 +1406,12 @@ tpSelectBtn.MouseButton1Click:Connect(function()
                     if dragger then dragger:FireServer(part.Parent) end
                     part:PivotTo(itemDestCF)
                 end)
-                task.wait(tpItemSpeed)
                 
                 for p, coll in pairs(oldCollisions) do
                     if p and p.Parent then p.CanCollide = coll end
                 end
+                
+                task.wait(tpItemSpeed)
 
                 if part and part.Parent and (part.Position - itemDestCF.Position).Magnitude < 10 then
                     break
@@ -1480,11 +1481,12 @@ iButton("Sell Selected", function()
                     pcall(function() part.Size = Vector3.new(1, 1, 1) end)
                     part:PivotTo(sellCF)
                 end)
-                task.wait(tpItemSpeed)
                 
                 for p, coll in pairs(oldCollisions) do
                     if p and p.Parent then p.CanCollide = coll end
                 end
+                
+                task.wait(tpItemSpeed)
 
                 if part and part.Parent and (part.Position - sellCF.Position).Magnitude < 15 then
                     break
