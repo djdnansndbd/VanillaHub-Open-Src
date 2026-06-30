@@ -1390,6 +1390,8 @@ tpSelectBtn.MouseButton1Click:Connect(function()
                     end
                     if dragger then dragger:FireServer(part.Parent) end
                     part:PivotTo(itemDestCF)
+                    part.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                    part.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
                 end)
                 task.wait(tpItemSpeed)
                 if part and part.Parent and (part.Position - itemDestCF.Position).Magnitude < 10 then
@@ -1397,6 +1399,9 @@ tpSelectBtn.MouseButton1Click:Connect(function()
                 end
             end
             deselectPart(part)
+        end
+        if returnToPos and OldPos and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            player.Character.HumanoidRootPart.CFrame = OldPos
         end
         isTeleportingItems = false; stopTeleportItems = false
         tpSelectBtn.Text = "Teleport Selected"
@@ -1410,13 +1415,28 @@ iButton("Sell Selected", function()
         and player.Character.HumanoidRootPart.CFrame
     if not workspace:FindFirstChild("PlayerModels") then return end
     task.spawn(function()
+        local selectedParts = {}
         for _, v in next, workspace.PlayerModels:GetDescendants() do
             if v.Name == "Selection" then
                 local part = v.Parent
-                if not (part and part.Parent) then continue end
-                local char = player.Character; local hrp = char and char:FindFirstChild("HumanoidRootPart")
-                if hrp then hrp.CFrame = CFrame.new(part.CFrame.p) * CFrame.new(0,2,0) end
+                if part and part.Parent then table.insert(selectedParts, part) end
+            end
+        end
+
+        for i, part in ipairs(selectedParts) do
+            if tpSelectBtn and tpSelectBtn.Parent then
+                tpSelectBtn.Text = string.format("Selling  [ %d / %d ]", (#selectedParts - i + 1), #selectedParts)
+            end
+            
+            local char = player.Character; local hrp = char and char:FindFirstChild("HumanoidRootPart")
+            if not hrp then task.wait(tpItemSpeed); continue end
+            
+            for attempt = 1, 5 do
+                hrp.CFrame = CFrame.new(part.CFrame.p) * CFrame.new(0, 2, 0)
                 task.wait(tpItemSpeed)
+                
+                local sellCF = CFrame.new(314.776, -1.593, 87.807)
+                
                 pcall(function()
                     if not part.Parent.PrimaryPart then part.Parent.PrimaryPart = part end
                     local dragger = ReplicatedStorage:FindFirstChild("Interaction")
@@ -1427,12 +1447,24 @@ iButton("Sell Selected", function()
                         task.wait(0.05); timeout = timeout + 0.05
                     end
                     if dragger then dragger:FireServer(part.Parent) end
+                    
                     pcall(function() part.Size = Vector3.new(1, 1, 1) end)
-                    part:PivotTo(CFrame.new(314.776,-1.593,87.807))
+                    part:PivotTo(sellCF)
+                    part.AssemblyLinearVelocity = Vector3.new(0, -50, 0) -- slam it into the dropoff
+                    part.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
                 end)
                 task.wait(tpItemSpeed)
+                
+                if part and part.Parent and (part.Position - sellCF.Position).Magnitude < 15 then
+                    break
+                end
             end
+            deselectPart(part)
         end
+        if returnToPos and OldPos and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            player.Character.HumanoidRootPart.CFrame = OldPos
+        end
+        tpSelectBtn.Text = "Teleport Selected"
     end)
 end)
 
