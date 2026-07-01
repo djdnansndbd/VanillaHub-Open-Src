@@ -705,10 +705,17 @@ end)
 copyBtn.MouseButton1Click:Connect(function()
     if setclipboard then
         setclipboard("https://discord.gg/bpfjSze8VB")
+        if _G.VH_Notify then
+            _G.VH_Notify("Success", "Discord invite copied to clipboard", 3.5, "success")
+        end
         copyBtn.Text = "Copied"
         task.delay(2, function()
             if copyBtn and copyBtn.Parent then copyBtn.Text = "Copy Invite" end
         end)
+    else
+        if _G.VH_Notify then
+            _G.VH_Notify("Error", "Your executor does not support clipboard copying", 3.5, "error")
+        end
     end
 end)
 
@@ -1304,7 +1311,7 @@ local function selectPart(part)
     sb.Name = "Selection"; sb.Adornee = part
     sb.SurfaceTransparency = 0.5; sb.LineThickness = 0.09
     sb.SurfaceColor3 = Color3.fromRGB(0,0,0)
-    sb.Color3 = Color3.fromRGB(180,180,180)
+    sb.Color3 = Color3.fromRGB(0, 255, 255)
 end
 
 local function deselectPart(part)
@@ -1463,8 +1470,6 @@ iDropdown("Select Player", "None", function()
 end, function(val)
     if val == "None" then selectedOtherPlayer = nil else selectedOtherPlayer = val end
 end)
-
-warn("[VanillaHub] Item Tab 'Select From Player' dropdown rendered successfully")
 
 iToggle("Click Select", false, function(val)
     clickSelectEnabled = val
@@ -1739,6 +1744,11 @@ tpSelectBtn.MouseButton1Click:Connect(function()
         isTeleportingItems = false; stopTeleportItems = false
         tpSelectBtn.Text = "Teleport Selected"
         TweenService:Create(tpSelectBtn, TweenInfo.new(0.2), {BackgroundColor3 = BTN_COLOR}):Play()
+        if #selectedParts > 0 and _G.VH_Notify then
+            _G.VH_Notify("Success", "Teleported " .. #selectedParts .. " item(s)", 3.5, "success")
+        elseif #selectedParts == 0 and _G.VH_Notify then
+            _G.VH_Notify("Warning", "No items selected to teleport", 3.5, "warning")
+        end
     end)
 end)
 
@@ -1796,6 +1806,11 @@ iButton("Sell Selected", function()
             player.Character.HumanoidRootPart.CFrame = OldPos
         end
         tpSelectBtn.Text = "Teleport Selected"
+        if #selectedParts > 0 and _G.VH_Notify then
+            _G.VH_Notify("Success", "Sold " .. #selectedParts .. " item(s).", 3.5, "success")
+        elseif #selectedParts == 0 and _G.VH_Notify then
+            _G.VH_Notify("Warning", "No items selected to sell.", 3.5, "warning")
+        end
     end)
 end)
 
