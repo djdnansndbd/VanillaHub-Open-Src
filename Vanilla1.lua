@@ -1798,7 +1798,7 @@ tpSelectBtn.MouseButton1Click:Connect(function()
             local yaw = math.atan2(facingDir.X, facingDir.Z)
             
             local itemDestCF = tpAxisMode == "horizontal"
-                and CFrame.new(destCF.Position) * CFrame.Angles(0, yaw, 0) * CFrame.Angles(math.rad(90), 0, 0)
+                and CFrame.new(destCF.Position) * CFrame.Angles(0, yaw, 0) * CFrame.new((i - 1) * 2.5, 0, 0) * CFrame.Angles(math.rad(90), 0, 0)
                 or  CFrame.new(destCF.Position)
             for attempt = 1, 5 do
                 if (hrp.Position - part.Position).Magnitude > 25 then
