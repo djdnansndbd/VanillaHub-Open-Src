@@ -1266,7 +1266,10 @@ startButterBtn.MouseButton1Click:Connect(function()
             end
         end
 
-        if butterRunning then setStatus("✓ All done!", false) end
+        if butterRunning then
+            setStatus("✓ All done!", false)
+            if _G.VH_Notify then _G.VH_Notify("Dupe Complete", "All items have been teleported successfully", 4.5, "success") end
+        end
         butterRunning = false; VH.butter.running = false
         butterThread = nil; VH.butter.thread = nil
         task.delay(2.1, resetAllProgress)
@@ -1415,6 +1418,7 @@ startSingleBtn.MouseButton1Click:Connect(function()
                 function(msg,act) setTruckStatus(msg,act) end, 25)
         else
             setTruckStatus("✓ Truck teleported!", false)
+            if _G.VH_Notify then _G.VH_Notify("Success", "Truck teleported successfully!", 3.5, "success") end
         end
 
         task.wait(1)
@@ -1662,6 +1666,7 @@ startBatchBtn.MouseButton1Click:Connect(function()
                 function(msg,act) setBatchStatus(msg,act) end, 25)
         else
             setBatchStatus(string.format("✓ %d truck(s) teleported!", trucksDone), false)
+            if _G.VH_Notify then _G.VH_Notify("Success", string.format("%d truck(s) teleported successfully!", trucksDone), 3.5, "success") end
         end
 
         task.wait(1)
