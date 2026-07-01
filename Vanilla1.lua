@@ -200,6 +200,97 @@ table.insert(cleanupTasks, function() if gui and gui.Parent then gui:Destroy() e
 
 _G.VanillaHubCleanup = onExit
 
+-- ════════════════════════════════════════════════════
+-- NOTIFICATION SYSTEM
+-- ════════════════════════════════════════════════════
+local notifyContainer = Instance.new("Frame", gui)
+notifyContainer.Name = "NotifyContainer"
+notifyContainer.Size = UDim2.new(0, 300, 1, -20)
+notifyContainer.Position = UDim2.new(1, -320, 0, 10)
+notifyContainer.BackgroundTransparency = 1
+notifyContainer.BorderSizePixel = 0
+notifyContainer.ZIndex = 100
+
+local notifyLayout = Instance.new("UIListLayout", notifyContainer)
+notifyLayout.SortOrder = Enum.SortOrder.LayoutOrder
+notifyLayout.Padding = UDim.new(0, 8)
+notifyLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
+notifyLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
+
+local function Notify(title, message, duration, msgType)
+    duration = duration or 3.5
+    msgType = msgType or "info"
+    
+    local typeColors = {
+        info = Color3.fromRGB(0, 255, 255),
+        success = Color3.fromRGB(0, 255, 100),
+        error = Color3.fromRGB(255, 80, 80),
+        warning = Color3.fromRGB(255, 200, 50)
+    }
+    local color = typeColors[msgType] or typeColors.info
+
+    local toastWrapper = Instance.new("Frame", notifyContainer)
+    toastWrapper.Size = UDim2.new(1, 0, 0, 60)
+    toastWrapper.BackgroundTransparency = 1
+    toastWrapper.BorderSizePixel = 0
+
+    local toast = Instance.new("Frame", toastWrapper)
+    toast.Size = UDim2.new(1, 0, 1, 0)
+    toast.Position = UDim2.new(1, 300, 0, 0)
+    toast.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    toast.BackgroundTransparency = 0.15
+    toast.BorderSizePixel = 0
+    toast.ClipsDescendants = true
+    Instance.new("UICorner", toast).CornerRadius = UDim.new(0, 8)
+    
+    local stroke = Instance.new("UIStroke", toast)
+    stroke.Color = color
+    stroke.Thickness = 1.2
+    stroke.Transparency = 0.2
+    
+    local barBg = Instance.new("Frame", toast)
+    barBg.Size = UDim2.new(1, 0, 0, 3)
+    barBg.Position = UDim2.new(0, 0, 1, -3)
+    barBg.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    barBg.BorderSizePixel = 0
+    
+    local barFill = Instance.new("Frame", barBg)
+    barFill.Size = UDim2.new(1, 0, 1, 0)
+    barFill.BackgroundColor3 = color
+    barFill.BorderSizePixel = 0
+
+    local titleLbl = Instance.new("TextLabel", toast)
+    titleLbl.Size = UDim2.new(1, -20, 0, 20)
+    titleLbl.Position = UDim2.new(0, 10, 0, 8)
+    titleLbl.BackgroundTransparency = 1
+    titleLbl.Font = Enum.Font.GothamBold
+    titleLbl.TextSize = 14
+    titleLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+    titleLbl.TextXAlignment = Enum.TextXAlignment.Left
+    titleLbl.Text = title
+
+    local msgLbl = Instance.new("TextLabel", toast)
+    msgLbl.Size = UDim2.new(1, -20, 0, 20)
+    msgLbl.Position = UDim2.new(0, 10, 0, 28)
+    msgLbl.BackgroundTransparency = 1
+    msgLbl.Font = Enum.Font.Gotham
+    msgLbl.TextSize = 12
+    msgLbl.TextColor3 = Color3.fromRGB(200, 200, 200)
+    msgLbl.TextXAlignment = Enum.TextXAlignment.Left
+    msgLbl.Text = message
+    
+    TweenService:Create(toast, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Position = UDim2.new(0, 0, 0, 0)}):Play()
+    TweenService:Create(barFill, TweenInfo.new(duration, Enum.EasingStyle.Linear), {Size = UDim2.new(0, 0, 1, 0)}):Play()
+    
+    task.delay(duration, function()
+        local outTween = TweenService:Create(toast, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.In), {Position = UDim2.new(1, 300, 0, 0)})
+        outTween:Play()
+        outTween.Completed:Connect(function() toastWrapper:Destroy() end)
+    end)
+end
+
+_G.VH_Notify = Notify
+
 local wrapper = Instance.new("Frame", gui)
 wrapper.Size = UDim2.new(0, 0, 0, 0)
 wrapper.Position = UDim2.new(0.5, -265, 0.5, -175)
