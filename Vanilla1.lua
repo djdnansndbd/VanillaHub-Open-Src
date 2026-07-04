@@ -974,6 +974,7 @@ local clickSelectEnabled  = false
 local lassoEnabled        = false
 local groupSelectEnabled  = false
 local isTeleportingItems  = false
+local isSellingItems      = false
 local stopTeleportItems   = false
 local useCustomDest       = false
 local returnToPos         = true
@@ -1402,7 +1403,7 @@ local function selectPart(part)
     sb.Name = "Selection"; sb.Adornee = part
     sb.SurfaceTransparency = 0.5; sb.LineThickness = 0.09
     sb.SurfaceColor3 = Color3.fromRGB(0,0,0)
-    sb.Color3 = Color3.fromRGB(0, 255, 255)
+    sb.Color3 = Color3.fromRGB(255, 0, 0)
 end
 
 local function deselectPart(part)
@@ -1711,6 +1712,24 @@ iSep()
 iSectionLabel("Actions")
 
 local tpSelectBtn = iButton("Teleport Selected", function() end)
+task.spawn(function()
+    while true do
+        task.wait(0.2)
+        if not isTeleportingItems and not isSellingItems and tpSelectBtn and tpSelectBtn.Parent then
+            local count = 0
+            if workspace:FindFirstChild("PlayerModels") then
+                for _, v in pairs(workspace.PlayerModels:GetDescendants()) do
+                    if v.Name == "Selection" then count = count + 1 end
+                end
+            end
+            if count > 0 then
+                tpSelectBtn.Text = "Teleport Selected [ " .. count .. " ]"
+            else
+                tpSelectBtn.Text = "Teleport Selected"
+            end
+        end
+    end
+end)
 tpSelectBtn.MouseButton1Click:Connect(function()
     if isTeleportingItems then
         stopTeleportItems = true; return
@@ -1844,10 +1863,12 @@ tpSelectBtn.MouseButton1Click:Connect(function()
 end)
 
 iButton("Sell Selected", function()
+    if isTeleportingItems or isSellingItems then return end
+    isSellingItems = true
     local OldPos = player.Character
         and player.Character:FindFirstChild("HumanoidRootPart")
         and player.Character.HumanoidRootPart.CFrame
-    if not workspace:FindFirstChild("PlayerModels") then return end
+    if not workspace:FindFirstChild("PlayerModels") then isSellingItems = false; return end
     task.spawn(function()
         local selectedParts = {}
         for _, v in next, workspace.PlayerModels:GetDescendants() do
@@ -1896,6 +1917,7 @@ iButton("Sell Selected", function()
         if returnToPos and OldPos and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
             player.Character.HumanoidRootPart.CFrame = OldPos
         end
+        isSellingItems = false
         tpSelectBtn.Text = "Teleport Selected"
         if #selectedParts > 0 and _G.VH_Notify then
             _G.VH_Notify("Success", "Sold " .. #selectedParts .. " item(s).", 3.5, "success")
