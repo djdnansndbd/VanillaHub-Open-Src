@@ -979,6 +979,8 @@ local stopTeleportItems   = false
 local useCustomDest       = false
 local returnToPos         = true
 local tpCircle            = nil
+local selectedItemCount   = 0
+local updateTeleportBtnText = nil
 
 local function iSectionLabel(text)
     local w = Instance.new("Frame", itemPage)
@@ -1404,23 +1406,37 @@ local function selectPart(part)
     sb.SurfaceTransparency = 0.5; sb.LineThickness = 0.09
     sb.SurfaceColor3 = Color3.fromRGB(0,0,0)
     sb.Color3 = Color3.fromRGB(255, 0, 0)
+    selectedItemCount = selectedItemCount + 1
+    if updateTeleportBtnText then updateTeleportBtnText() end
 end
 
 local function deselectPart(part)
     if not part then return end
     local s = part:FindFirstChild("Selection")
-    if s then s:Destroy() end
+    if s then 
+        s:Destroy() 
+        selectedItemCount = selectedItemCount - 1
+        if selectedItemCount < 0 then selectedItemCount = 0 end
+        if updateTeleportBtnText then updateTeleportBtnText() end
+    end
 end
 
 local function deselectAll()
     if not (workspace:FindFirstChild("PlayerModels")) then return end
+    local changed = false
     for _, v in pairs(workspace.PlayerModels:GetChildren()) do
         if v:FindFirstChild("Main") and v.Main:FindFirstChild("Selection") then
             v.Main.Selection:Destroy()
+            changed = true
         end
         if v:FindFirstChild("WoodSection") and v.WoodSection:FindFirstChild("Selection") then
             v.WoodSection.Selection:Destroy()
+            changed = true
         end
+    end
+    if changed then
+        selectedItemCount = 0
+        if updateTeleportBtnText then updateTeleportBtnText() end
     end
 end
 table.insert(cleanupTasks, deselectAll)
@@ -1712,24 +1728,15 @@ iSep()
 iSectionLabel("Actions")
 
 local tpSelectBtn = iButton("Teleport Selected", function() end)
-task.spawn(function()
-    while true do
-        task.wait(0.2)
-        if not isTeleportingItems and not isSellingItems and tpSelectBtn and tpSelectBtn.Parent then
-            local count = 0
-            if workspace:FindFirstChild("PlayerModels") then
-                for _, v in pairs(workspace.PlayerModels:GetDescendants()) do
-                    if v.Name == "Selection" then count = count + 1 end
-                end
-            end
-            if count > 0 then
-                tpSelectBtn.Text = "Teleport Selected [ " .. count .. " ]"
-            else
-                tpSelectBtn.Text = "Teleport Selected"
-            end
+updateTeleportBtnText = function()
+    if not isTeleportingItems and not isSellingItems and tpSelectBtn and tpSelectBtn.Parent then
+        if selectedItemCount > 0 then
+            tpSelectBtn.Text = "Teleport Selected [ " .. selectedItemCount .. " ]"
+        else
+            tpSelectBtn.Text = "Teleport Selected"
         end
     end
-end)
+end
 tpSelectBtn.MouseButton1Click:Connect(function()
     if isTeleportingItems then
         stopTeleportItems = true; return
@@ -1759,7 +1766,7 @@ tpSelectBtn.MouseButton1Click:Connect(function()
     task.spawn(function()
         if not workspace:FindFirstChild("PlayerModels") then
             isTeleportingItems = false; stopTeleportItems = false
-            tpSelectBtn.Text = "Teleport Selected"
+            if updateTeleportBtnText then updateTeleportBtnText() end
             TweenService:Create(tpSelectBtn,TweenInfo.new(0.2),{BackgroundColor3=BTN_COLOR}):Play()
             return
         end
@@ -1852,7 +1859,7 @@ tpSelectBtn.MouseButton1Click:Connect(function()
             player.Character.HumanoidRootPart.CFrame = OldPos
         end
         isTeleportingItems = false; stopTeleportItems = false
-        tpSelectBtn.Text = "Teleport Selected"
+        if updateTeleportBtnText then updateTeleportBtnText() end
         TweenService:Create(tpSelectBtn, TweenInfo.new(0.2), {BackgroundColor3 = BTN_COLOR}):Play()
         if #selectedParts > 0 and _G.VH_Notify then
             _G.VH_Notify("Success", "Teleported " .. #selectedParts .. " item(s)", 3.5, "success")
@@ -1918,7 +1925,7 @@ iButton("Sell Selected", function()
             player.Character.HumanoidRootPart.CFrame = OldPos
         end
         isSellingItems = false
-        tpSelectBtn.Text = "Teleport Selected"
+        if updateTeleportBtnText then updateTeleportBtnText() end
         if #selectedParts > 0 and _G.VH_Notify then
             _G.VH_Notify("Success", "Sold " .. #selectedParts .. " item(s).", 3.5, "success")
         elseif #selectedParts == 0 and _G.VH_Notify then
